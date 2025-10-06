@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamr Test App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1E1E1E;
+            --bg-tertiary: #2C2C2C;
+            --text-primary: #EAEAEA;
+            --text-secondary: #A0A0A0;
+            --accent-color: #4A90E2;
+            --border-color: #383838;
+            --success-color: #3f9142;
+            --danger-color: #c9403d;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); }
+        .container { 
+            max-width: 900px; width: 100%; 
+            background-color: var(--bg-secondary); 
+            padding: 2rem; 
+            border-radius: 1rem; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+        }
+        input, select { 
+            width: 100%; padding: 0.7rem; 
+            border-radius: 0.5rem; 
+            border: 1px solid var(--border-color); 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary); 
+            font-size: 0.95rem;
+            transition: all 0.2s ease-in-out;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+        .btn { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background-color: var(--accent-color); color: #fff; border-color: rgba(255,255,255,0.1); }
+        .btn-primary:hover:not(:disabled) { background-color: #63a4ff; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-danger:hover:not(:disabled) { opacity: 0.9; }
+        .btn-secondary { background-color: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-color); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--border-color); }
+        .main-menu-btn {
+            background: linear-gradient(145deg, #2c2c2c, #1e1e1e);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            flex-direction: column;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        .main-menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.15);
+        }
+        .icon-btn { 
+            width: 36px; height: 36px; 
+            display: inline-flex; align-items:center; justify-content:center; 
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius:8px; 
+            cursor:pointer; font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover { background: var(--border-color); }
+        label { font-weight: 600; margin-bottom: 0.35rem; display:block; color:#d0d0d0; }
+        .small-note { color:var(--text-secondary); font-size:0.9rem; }
+        #menu, #bandwidthTester, #pingTester, #streamExplorer { display:none; }
+        #menu.active, #bandwidthTester.active, #pingTester.active, #streamExplorer.active { display:block; }
+        .table-container { max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); text-align: left; }
+        th { background: #252525; position: sticky; top: 0; z-index: 1; font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        #subMessages tr:hover, #explorerMessages tr:hover { background-color: rgba(180, 180, 180, 0.05); }
+        .message-row { cursor: pointer; }
+        .payload-row { display: none; }
+        .payload-row.is-visible { display: table-row; }
+        .payload-cell { background-color: rgba(0,0,0,0.2); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; background-color: var(--bg-primary); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid var(--border-color); }
+        .stat-item h3 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .stat-item p { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); }
+        .tab-nav { display: flex; border-bottom: 2px solid var(--border-color); }
+        .tab-btn { padding: 0.8rem 1.2rem; border: none; background-color: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+        .tab-content { display: none; padding-top: 1.5rem; }
+        .tab-content.active { display: block; }
+        .view-header { display: flex; align-items: center; gap: 0.75rem; justify-content: center; margin-bottom: 1.5rem; }
+        .view-header h1 { font-size: 1.5rem; font-weight: 700; }
+        .view-header svg { color: var(--accent-color); }
+        .range-label { margin-top: 0.35rem; color: var(--text-secondary); text-align: right;}
+        .display-field {
+            font-family: monospace;
+            padding: 0.65rem 0.7rem;
+            border-radius: 0.5rem;
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            word-break: break-all;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-right: 0.5rem;
+            position: relative;
+        }
+        .checkbox:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: var(--bg-primary);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-6">
+    <div id="menu" class="container active text-center relative">
+        <div class="absolute top-4 right-4">
+            <button id="openIdentityModalBtn" class="icon-btn" title="Client Identity">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </button>
+        </div>
+
+        <h1 class="text-4xl font-bold mb-2">Streamr Test App</h1>
+        <p class="small-note mb-8">Choose a network test tool</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 justify-center gap-6">
+            <button id="openBandwidthTester" class="main-menu-btn text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
+                Bandwidth Test <svg class="w-8 h-8 mt-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+            </button>
+            <button id="openPingTester" class="main-menu-btn text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
+                Ping Test <svg class="w-8 h-8 mt-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </button>
+            <button id="openStreamExplorer" class="main-menu-btn text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
+                Stream Explorer <svg class="w-8 h-8 mt-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Identity Modal -->
+    <div id="identityModal" class="fixed hidden inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="container relative w-full max-w-lg">
+            <button id="closeIdentityModalBtn" class="absolute top-4 right-4 icon-btn">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <h2 class="text-2xl font-semibold mb-4 text-center">Client Identity</h2>
+            <div class="max-w-md mx-auto">
+                <label for="privateKeyInput" class="text-left">Your Private Key (Optional)</label>
+                <input type="password" id="privateKeyInput" class="font-mono text-center" placeholder="Starts with 0x...">
+                <p class="small-note mt-2 text-left">Provide a key to use a specific identity. Leave blank to connect as an anonymous client. Your key is saved in your browser's local storage.</p>
+            </div>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="restartClientBtn" class="btn btn-secondary">Save & Restart Client</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bandwidth Tester View -->
+    <div id="bandwidthTester" class="container">
+        <div class="flex justify-between items-start">
+             <button class="back-btn icon-btn mb-4" title="Back to menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+             </button>
+             <div class="w-full">
+                <div class="view-header">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12H3M3 12l6-6M3 12l6 6M21 6H9m12 12H9"/></svg>
+                     <h1>Bandwidth Test</h1>
+                </div>
+                <div class="tab-nav mb-4">
+                    <button id="showPublisherTab" class="tab-btn flex items-center gap-2">
+                        Publisher <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button id="showSubscriberTab" class="tab-btn active flex items-center gap-2">
+                        Subscriber <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label for="streamId">Stream ID</label>
+                    <div id="streamId" class="display-field"></div>
+                </div>
+             </div>
+             <div class="w-11"></div> <!-- Spacer -->
+        </div>
+        
+        <div id="publisherContent" class="tab-content">
+            <div class="mb-5"><label>Timestamp & Message Count</label><div id="timestampField" class="display-field h-[42px]"></div></div>
+            <div id="dataFieldsContainer" class="mb-4"></div>
+            <div class="controls mb-4 flex gap-2">
+                <button id="addFieldBtn" class="icon-btn" title="Add Field">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <button id="publishBtn" class="icon-btn" title="Publish">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+                <button id="loopBtn" class="icon-btn" title="Start/Stop Loop"></button>
+            </div>
+            <div class="mb-4"><label for="frequency">Publish Frequency (ms)</label><input type="range" id="frequency" min="5" max="5000" step="5" value="1000"><div class="range-label" id="freqLabel">1000 ms</div></div>
+            <p id="statusText" class="text-center small-note h-5">Ready to publish.</p>
+        </div>
+
+        <div id="subscriberContent" class="tab-content active">
+            <div id="statsContainer" class="stats-grid"></div>
+            <div class="flex gap-4 my-4 items-center justify-center">
+                <button id="subscribeBtn" class="icon-btn btn-primary" title="Subscribe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </button>
+                <button id="unsubscribeBtn" class="icon-btn btn-danger" title="Stop">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                </button>
+                <button id="clearLogBtn" class="icon-btn" title="Clear Log">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+                <button id="toggleLogBtn" class="icon-btn" title="Hide Log">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Message Timestamp</th>
+                            <th>Network Timestamp</th>
+                            <th>Receive Timestamp</th>
+                            <th>Count</th>
+                            <th>Jitter</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subMessages"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ping Tester View -->
+    <div id="pingTester" class="container">
+         <div class="flex justify-between items-start">
+            <button class="back-btn icon-btn mb-4" title="Back to menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div class="w-full view-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.34 4.66a9.49 9.49 0 1 0-1.07 13.51"/><path d="m9.43 9.57 5.06 5.06"/><path d="M12 22v-2"/><path d="M12 4V2"/><path d="m4.66 4.66.71.71"/><path d="m18.63 18.63.71.71"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.66 19.34.71-.71"/><path d="m18.63 5.37.71-.71"/></svg>
+                <h1>Ping Tester</h1>
+            </div>
+            <div class="w-11"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+             <div>
+                <label for="pingStreamId">Ping Stream ID</label>
+                <div id="pingStreamId" class="display-field"></div>
+            </div>
+            <div>
+                <label for="pingUserLocation">Your Location</label>
+                <input type="text" id="pingUserLocation" placeholder="e.g., London">
+            </div>
+        </div>
+
+        <div class="text-right text-sm text-gray-400 -mt-2 mb-4">
+            Your Ping ID: <span id="userShortId" class="font-mono bg-gray-900 px-2 py-1 rounded"></span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="pingPayloadSize">Payload Size (KB)</label>
+                <input type="number" id="pingPayloadSize" min="0" max="256" value="0" placeholder="e.g., 1">
+            </div>
+            <div>
+                <label for="pingFrequency">Ping Frequency (ms)</label>
+                <input type="range" id="pingFrequency" min="5" max="5000" step="5" value="1000">
+                <div class="range-label" id="pingFreqLabel">1000 ms</div>
+            </div>
+        </div>
+
+        <div class="flex gap-4 mb-4 items-center justify-center">
+            <button id="pingStartBtn" class="icon-btn btn-primary" title="Start Sending Pings">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </button>
+            <button id="pingStopBtn" class="icon-btn btn-danger" title="Stop Sending">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            </button>
+        </div>
+        <div class="stats-grid"></div>
+        <div class="table-container"><table><thead><tr><th>Time</th><th>Sequence</th><th>Direction</th><th>Remote Peer</th><th>Latency</th></tr></thead><tbody id="pingLog"></tbody></table></div>
+    </div>
+
+    <!-- Stream Explorer View -->
+    <div id="streamExplorer" class="container">
+        <div class="flex justify-between items-start">
+            <button class="back-btn icon-btn mb-4" title="Back to menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div class="w-full">
+                <div class="view-header">
+                    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <h1>Stream Explorer</h1>
+                </div>
+                <div class="mb-4">
+                    <label for="explorerStreamId">Stream ID</label>
+                    <input type="text" id="explorerStreamId" placeholder="Enter any public Stream ID">
+                </div>
+            </div>
+            <div class="w-11"></div> <!-- Spacer -->
+        </div>
+        
+        <div id="explorerStatsContainer" class="stats-grid"></div>
+        <div class="flex gap-4 my-4 items-center justify-between w-full">
+            <div class="flex gap-4">
+                <button id="explorerSubscribeBtn" class="icon-btn btn-primary" title="Subscribe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </button>
+                <button id="explorerUnsubscribeBtn" class="icon-btn btn-danger" title="Stop">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                </button>
+                <button id="explorerClearLogBtn" class="icon-btn" title="Clear Log">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+            </div>
+            <div id="explorerPartitionNav" class="flex items-center justify-end gap-4">
+               <label class="checkbox-label mr-4">
+                   <input type="checkbox" id="explorerAllPartitions" class="checkbox">
+                   <span>All Partitions</span>
+               </label>
+               <div id="explorerPartitionSelector" class="flex items-center gap-2">
+                   <button id="explorerPrevPartitionBtn" class="icon-btn">&lt;</button>
+                   <span id="explorerPartitionDisplay" class="font-mono"></span>
+                   <button id="explorerNextPartitionBtn" class="icon-btn">&gt;</button>
+               </div>
+           </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Network Timestamp</th>
+                        <th>Publisher ID</th>
+                        <th>Partition</th>
+                        <th>Jitter</th>
+                    </tr>
+                </thead>
+                <tbody id="explorerMessages"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <script src="https://unpkg.com/@streamr/sdk@103.0.0/dist/streamr-sdk.web.js"></script>
+    <script>
+        // --- App State and Navigation ---
+        const appState = {
+            clientId: '',
+            shortClientId: '',
+            streamrClient: null, 
+            subscription: null,
+            explorerSubscription: null,
+            msgTimestamps: [], bytesHistory: [], statsInterval: null, publishLoopTimeout: null,
+            explorerMsgTimestamps: [], explorerBytesHistory: [], explorerStatsInterval: null,
+            explorerJitterData: [], explorerLastPacketDetails: null,
+            explorerTotalReceived: 0,
+            explorerCurrentPartition: 0,
+            jitterData: [], lastPacketDetails: null,
+            messageCount: 0, firstPacketCount: null, lastPacketCount: 0, totalPacketsReceived: 0, lostPackets: 0,
+            messageQueue: [], renderLoopId: null, pingInterval: null, pingCount: 0, pongCount: 0,
+            explorerMessageQueue: [], explorerRenderLoopId: null,
+            pingTimestamps: new Map(), pingListener: null, pingLatencies: [],
+            payloadCache: new Map(),
+            isLogVisible: true,
+        };
+
+        const menu = document.getElementById('menu');
+        const bandwidthTester = document.getElementById('bandwidthTester');
+        const pingTester = document.getElementById('pingTester');
+        const streamExplorer = document.getElementById('streamExplorer');
+        const publisherContent = document.getElementById('publisherContent');
+        const subscriberContent = document.getElementById('subscriberContent');
+        const showPublisherTabBtn = document.getElementById('showPublisherTab');
+        const showSubscriberTabBtn = document.getElementById('showSubscriberTab');
+        const privateKeyInput = document.getElementById('privateKeyInput');
+        const privateKeyStorageKey = 'streamr-private-key';
+        const restartClientBtn = document.getElementById('restartClientBtn');
+
+        const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+        const stopIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>`;
+
+        const identityModal = document.getElementById('identityModal');
+        const openIdentityModalBtn = document.getElementById('openIdentityModalBtn');
+        const closeIdentityModalBtn = document.getElementById('closeIdentityModalBtn');
+
+        openIdentityModalBtn.onclick = () => identityModal.classList.remove('hidden');
+        closeIdentityModalBtn.onclick = () => identityModal.classList.add('hidden');
+        identityModal.onclick = (e) => {
+            if (e.target === identityModal) {
+                identityModal.classList.add('hidden');
+            }
+        };
+
+
+        privateKeyInput.value = localStorage.getItem(privateKeyStorageKey) || '';
+        
+        async function initializeStreamrClient() {
+            if (appState.streamrClient) {
+                try {
+                    await appState.streamrClient.destroy();
+                } catch (e) {
+                    console.warn("Could not destroy previous Streamr client, it may not have been connected.", e);
+                }
+            }
+            console.log("Initializing new Streamr client...");
+
+            let key = privateKeyInput.value.trim();
+            let clientConfig = {};
+
+            if (key && key.startsWith('0x') && key.length === 66) {
+                clientConfig = {
+                    auth: {
+                        privateKey: key,
+                    }
+                };
+                localStorage.setItem(privateKeyStorageKey, key);
+                console.log("Using provided private key.");
+            } else {
+                localStorage.removeItem(privateKeyStorageKey);
+                privateKeyInput.value = '';
+                console.log("Using anonymous client (no identity).");
+            }
+
+            appState.streamrClient = new StreamrClient(clientConfig);
+
+            if (clientConfig.auth) {
+                const address = await appState.streamrClient.getAddress();
+                appState.clientId = address;
+                appState.shortClientId = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+            } else {
+                appState.clientId = Math.random().toString(36).substring(2, 9);
+                appState.shortClientId = appState.clientId;
+            }
+            
+            console.log("Streamr client initialized. Client ID:", appState.clientId);
+            identityModal.classList.add('hidden');
+        }
+
+        function showView(viewToShow) {
+            [menu, bandwidthTester, pingTester, streamExplorer].forEach(view => view.classList.toggle('active', view === viewToShow));
+        }
+        
+        function showBandwidthTab(tabName) {
+            const isPublisher = tabName === 'publisher';
+            if (isPublisher) { stopSubscription(); } else { stopLoop(); }
+            publisherContent.classList.toggle('active', isPublisher);
+            subscriberContent.classList.toggle('active', !isPublisher);
+            showPublisherTabBtn.classList.toggle('active', isPublisher);
+            showSubscriberTabBtn.classList.toggle('active', !isPublisher);
+        }
+
+        document.getElementById('openBandwidthTester').onclick = () => { showView(bandwidthTester); showBandwidthTab('subscriber'); };
+        document.getElementById('openPingTester').onclick = () => {
+            document.getElementById('userShortId').textContent = appState.shortClientId;
+            showView(pingTester); 
+            startPingListener(); 
+        };
+        document.getElementById('openStreamExplorer').onclick = () => {
+            showView(streamExplorer);
+            appState.explorerCurrentPartition = 0;
+            updatePartitionDisplay();
+        };
+        showPublisherTabBtn.onclick = () => showBandwidthTab('publisher');
+        showSubscriberTabBtn.onclick = () => showBandwidthTab('subscriber');
+        document.querySelectorAll('.back-btn').forEach(btn => {
+            btn.onclick = () => {
+                stopLoop(); stopSubscription(); stopPingTest(); stopPingListener(); stopStreamExplorer();
+                showView(menu);
+            };
+        });
+        
+        restartClientBtn.onclick = initializeStreamrClient;
+        
+        window.onload = initializeStreamrClient;
+
+        // --- Shared Logic ---
+        function getStreamrClient() {
+            if (!appState.streamrClient) {
+                console.error("Streamr client not initialized!");
+            }
+            return appState.streamrClient;
+        }
+
+        function randomPrintableString(length) { if (length <= 0) return ''; const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; let result = ''; for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length)); return result; }
+        
+        // --- Publisher logic ---
+        const streamIdInput = document.getElementById('streamId');
+        const dataFieldsContainer = document.getElementById('dataFieldsContainer');
+        const addFieldBtn = document.getElementById('addFieldBtn');
+        const publishBtn = document.getElementById('publishBtn');
+        const loopBtn = document.getElementById('loopBtn');
+        const frequencyInput = document.getElementById('frequency');
+        const freqLabel = document.getElementById('freqLabel');
+        const statusText = document.getElementById('statusText');
+        const timestampField = document.getElementById('timestampField');
+        const bandwidthStreamIdStorageKey = 'streamr-bandwidth-streamId';
+        const defaultBandwidthStreamId = '0x9b9d85400191aff50df376fc09a87b8efd9bd299/Bandwidth';
+        
+        streamIdInput.textContent = localStorage.getItem(bandwidthStreamIdStorageKey) || defaultBandwidthStreamId;
+
+        function updatePublisherTimestamp() { if (!timestampField) return; const now = new Date(); timestampField.textContent = `${now.toLocaleString()}.${now.getMilliseconds().toString().padStart(3, '0')} | Messages sent: ${appState.messageCount}`; }
+        setInterval(updatePublisherTimestamp, 50);
+
+        if (frequencyInput) { frequencyInput.addEventListener('input', () => { freqLabel.textContent = `${frequencyInput.value} ms`; if (appState.publishLoopTimeout) { stopLoop(); startLoop(); } }); }
+        if (addFieldBtn) {
+            addFieldBtn.addEventListener('click', () => {
+                const fieldDiv = document.createElement('div');
+                const fieldId = `field_${Date.now()}_${Math.random()}`;
+                fieldDiv.dataset.fieldId = fieldId;
+                fieldDiv.className = 'data-field flex items-center gap-2 mb-2';
+                fieldDiv.innerHTML = `<input type="text" class="key" placeholder="Field Name" style="flex:1;"><input type="text" class="value" placeholder="Value" style="flex:2;"><input type="number" class="size" placeholder="KB" min="0" max="256" title="Payload Size in Kilobytes (KB)" style="flex:1;"><button class="removeFieldBtn icon-btn" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
+                dataFieldsContainer.appendChild(fieldDiv);
+            });
+            addFieldBtn.click();
+        }
+        if (dataFieldsContainer) {
+            dataFieldsContainer.addEventListener('click', (e) => { 
+                const fieldDiv = e.target.closest('.data-field');
+                if (e.target.closest('.removeFieldBtn') && fieldDiv) {
+                    const fieldId = fieldDiv.dataset.fieldId;
+                    if (fieldId) {
+                        appState.payloadCache.delete(fieldId);
+                    }
+                    fieldDiv.remove();
+                }
+            });
+            dataFieldsContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('size')) {
+                    const fieldDiv = e.target.closest('.data-field');
+                    const keyInput = fieldDiv.querySelector('.key');
+                    const valueInput = fieldDiv.querySelector('.value');
+                    const fieldId = fieldDiv.dataset.fieldId;
+                    
+                    if (parseInt(e.target.value, 10) > 256) {
+                        e.target.value = 256;
+                    }
+
+                    const size = parseInt(e.target.value, 10) || 0;
+
+                    if (size > 0) {
+                        keyInput.value = 'Randomly generated';
+                        keyInput.disabled = true;
+                        valueInput.value = '';
+                        valueInput.disabled = true;
+                        const randomPayload = randomPrintableString(Math.floor(size * 1024));
+                        appState.payloadCache.set(fieldId, randomPayload);
+                    } else {
+                        keyInput.value = '';
+                        keyInput.disabled = false;
+                        valueInput.disabled = false;
+                        appState.payloadCache.delete(fieldId);
+                    }
+                }
+            });
+        }
+        function getDataPayload() { 
+            const data = {}; 
+            dataFieldsContainer.querySelectorAll('.data-field').forEach(f => { 
+                const key = f.querySelector('.key').value.trim(); 
+                if (!key) return; 
+                const sizeKB = parseInt(f.querySelector('.size').value) || 0; 
+                if (sizeKB > 0) {
+                    const fieldId = f.dataset.fieldId;
+                    data[key] = appState.payloadCache.get(fieldId) || '';
+                } else { 
+                    const valTrim = f.querySelector('.value').value.trim(); 
+                    data[key] = valTrim === '' ? '' : (isNaN(valTrim) ? valTrim : parseFloat(valTrim)); 
+                } 
+            }); 
+            return data; 
+        }
+        async function publishData() { const streamId = streamIdInput.textContent.trim(); if (!streamId) { statusText.textContent = 'Enter a valid Stream ID.'; return; } const streamr = getStreamrClient(); const dataToSend = [Date.now(), appState.messageCount + 1, getDataPayload(), parseInt(frequencyInput.value)]; statusText.textContent = `Publishing...`; try { await streamr.publish(streamId, dataToSend); appState.messageCount++; statusText.textContent = `Published successfully! Total: ${appState.messageCount}`; } catch (err) { console.error(err); statusText.textContent = `Error: ${err.message}`; stopLoop(); } }
+        function loop() { publishData().finally(() => { if (appState.publishLoopTimeout) appState.publishLoopTimeout = setTimeout(loop, parseInt(frequencyInput.value)); }); }
+        function startLoop() { if (appState.publishLoopTimeout) return; appState.messageCount = 0; loopBtn.innerHTML = stopIcon; statusText.textContent = 'Publishing loop active...'; appState.publishLoopTimeout = setTimeout(loop, 0); }
+        function stopLoop() { clearTimeout(appState.publishLoopTimeout); appState.publishLoopTimeout = null; if(loopBtn) loopBtn.innerHTML = playIcon; if(statusText && statusText.textContent.includes('Publishing')) statusText.textContent = 'Loop stopped.'; }
+        if(publishBtn) publishBtn.addEventListener('click', publishData);
+        if(loopBtn) {
+            loopBtn.innerHTML = playIcon;
+            loopBtn.addEventListener('click', () => { if (!appState.publishLoopTimeout) startLoop(); else stopLoop(); });
+        }
+
+        // --- Subscriber logic ---
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        const unsubscribeBtn = document.getElementById('unsubscribeBtn');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        const subMessages = document.getElementById('subMessages');
+        const statsContainer = document.getElementById('statsContainer');
+        const toggleLogBtn = document.getElementById('toggleLogBtn');
+        const subTableContainer = subscriberContent.querySelector('.table-container');
+
+        const subscriberStats = { subStatus: 'Idle', avgJitter: '-- ms', jitterCV: '-- %', msgRate: '--', bandwidth: '-- Kbps', totalReceived: 0, lostPackets: '--', setFrequency: '-- ms' };
+        function renderSubscriberStats() { if (!statsContainer) return; statsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="subStatus">${subscriberStats.subStatus}</p></div><div class="stat-item"><h3>Avg Jitter</h3><p>${subscriberStats.avgJitter}</p></div><div class="stat-item"><h3>Jitter CV (%)</h3><p>${subscriberStats.jitterCV}</p></div><div class="stat-item"><h3>Set Frequency</h3><p>${subscriberStats.setFrequency}</p></div><div class="stat-item"><h3>Messages/sec</h3><p>${subscriberStats.msgRate}</p></div><div class="stat-item"><h3>Bandwidth</h3><p>${subscriberStats.bandwidth}</p></div><div class="stat-item"><h3>Total Received</h3><p>${subscriberStats.totalReceived}</p></div><div class="stat-item"><h3>Lost Packets</h3><p>${subscriberStats.lostPackets}</p></div>`; const statusEl = document.getElementById('subStatus'); if (statusEl) { if(subscriberStats.subStatus === 'Subscribed') statusEl.style.color = 'var(--success-color)'; else if (subscriberStats.subStatus === 'Error') statusEl.style.color = 'var(--danger-color)'; else statusEl.style.color = 'inherit'; } }
+        renderSubscriberStats();
+        function resetPacketStats() { Object.assign(appState, { firstPacketCount: null, lastPacketCount: 0, totalPacketsReceived: 0, lostPackets: 0, bytesHistory: [], jitterData: [], lastPacketDetails: null, msgTimestamps: [] }); }
+        function updateStats() {
+            const now = Date.now();
+            if (appState.jitterData.length > 1) {
+                const mean = appState.jitterData.reduce((a, b) => a + b, 0) / appState.jitterData.length;
+                subscriberStats.avgJitter = `${mean.toFixed(2)} ms`;
+                const variance = appState.jitterData.map(k => Math.pow(k - mean, 2)).reduce((a, b) => a + b, 0) / appState.jitterData.length;
+                const stdDev = Math.sqrt(variance);
+                if (mean > 0) { const cv = (stdDev / mean) * 100; subscriberStats.jitterCV = `${cv.toFixed(2)} %`; } else { subscriberStats.jitterCV = '0.00 %'; }
+            } else {
+                subscriberStats.avgJitter = `-- ms`;
+                subscriberStats.jitterCV = `-- %`;
+            }
+
+            const fiveSecondsAgo = now - 5000;
+            appState.msgTimestamps = appState.msgTimestamps.filter(ts => ts > fiveSecondsAgo);
+            appState.bytesHistory = appState.bytesHistory.filter(record => record.timestamp > fiveSecondsAgo);
+            
+            const msgCount = appState.msgTimestamps.length;
+            const totalBytes = appState.bytesHistory.reduce((acc, record) => acc + record.size, 0);
+
+            if (msgCount > 1) {
+                const firstTs = appState.msgTimestamps[0];
+                const lastTs = appState.msgTimestamps[msgCount - 1];
+                const durationSeconds = (lastTs - firstTs) / 1000;
+
+                if (durationSeconds > 0) {
+                    subscriberStats.msgRate = (msgCount / durationSeconds).toFixed(1);
+                    subscriberStats.bandwidth = (((totalBytes * 8) / 1000) / durationSeconds).toFixed(2) + ' Kbps';
+                } else {
+                    subscriberStats.msgRate = (msgCount / 5).toFixed(1);
+                    subscriberStats.bandwidth = ((totalBytes * 8) / (5 * 1000)).toFixed(2) + ' Kbps';
+                }
+            } else {
+                subscriberStats.msgRate = (msgCount / 5).toFixed(1);
+                subscriberStats.bandwidth = ((totalBytes * 8) / (5 * 1000)).toFixed(2) + ' Kbps';
+            }
+
+            subscriberStats.totalReceived = appState.totalPacketsReceived;
+            subscriberStats.lostPackets = appState.firstPacketCount === null ? '--' : appState.lostPackets;
+            renderSubscriberStats();
+        }
+        
+        function handleMessage(content, metadata) { 
+            const now = Date.now();
+            const [timestampMs, count, payload, setFrequency] = content || []; 
+
+            if (setFrequency !== undefined) { subscriberStats.setFrequency = `${setFrequency} ms`; }
+            if (count !== undefined && count !== null) { if (appState.firstPacketCount === null) { appState.firstPacketCount = count; appState.lastPacketCount = count; appState.totalPacketsReceived = 1; } else { appState.totalPacketsReceived++; appState.lastPacketCount = Math.max(appState.lastPacketCount, count); } const expectedCount = (appState.lastPacketCount - appState.firstPacketCount) + 1; appState.lostPackets = Math.max(0, expectedCount - appState.totalPacketsReceived); } 
+            
+            let jitter = -1;
+            const networkTimestamp = metadata.timestamp;
+            if (networkTimestamp && appState.lastPacketDetails) { 
+                const sendInterval = networkTimestamp - appState.lastPacketDetails.sendTime; 
+                const receiveInterval = now - appState.lastPacketDetails.receiveTime; 
+                const currentJitter = Math.abs(receiveInterval - sendInterval); 
+                appState.jitterData.push(currentJitter); 
+                if (appState.jitterData.length > 100) appState.jitterData.shift(); 
+                jitter = currentJitter;
+            } 
+            
+            appState.lastPacketDetails = { sendTime: networkTimestamp, receiveTime: now }; 
+            appState.msgTimestamps.push(now); 
+            appState.bytesHistory.push({ timestamp: now, size: JSON.stringify(content).length }); 
+            appState.messageQueue.push({ msg: {timestampMs, count, payload}, metadata, jitter, receiveTime: now }); 
+        }
+
+        function renderMessageBatch() {
+            if (!appState.isLogVisible) {
+                appState.messageQueue = [];
+                appState.renderLoopId = requestAnimationFrame(renderMessageBatch);
+                return;
+            }
+
+            if (appState.messageQueue.length === 0 || !subMessages) {
+                appState.renderLoopId = requestAnimationFrame(renderMessageBatch);
+                return;
+            }
+            const fragment = document.createDocumentFragment();
+            const messagesToRender = appState.messageQueue.splice(0, 50);
+            for (const item of messagesToRender) {
+                const { msg, metadata, jitter, receiveTime } = item;
+                const networkTs = new Date(metadata.timestamp);
+                const msgTs = msg.timestampMs ? new Date(msg.timestampMs) : null;
+                const receiveTs = new Date(receiveTime);
+
+                const row = document.createElement('tr');
+                row.className = 'message-row';
+                row.innerHTML = `
+                    <td>${msgTs ? msgTs.toLocaleTimeString()+'.'+msgTs.getMilliseconds().toString().padStart(3,'0') : '-'}</td>
+                    <td>${networkTs.toLocaleTimeString()}.${networkTs.getMilliseconds().toString().padStart(3, '0')}</td>
+                    <td>${receiveTs.toLocaleTimeString()}.${receiveTs.getMilliseconds().toString().padStart(3, '0')}</td>
+                    <td>${msg.count ?? '-'}</td>
+                    <td>${jitter >= 0 ? `${jitter.toFixed(2)} ms` : '-'}</td>
+                `;
+                
+                fragment.appendChild(row);
+            }
+            subMessages.insertBefore(fragment, subMessages.firstChild);
+            while (subMessages.childElementCount > 200) {
+                subMessages.removeChild(subMessages.lastChild);
+            }
+            appState.renderLoopId = requestAnimationFrame(renderMessageBatch);
+        }
+
+        if(subscribeBtn) subscribeBtn.addEventListener('click', async () => { 
+            if (appState.subscription) return; 
+            const streamId = streamIdInput.textContent.trim(); 
+            if (!streamId) { alert('Enter a valid Stream ID.'); return; } 
+            const streamr = getStreamrClient(); 
+            Object.assign(subscriberStats, { subStatus: 'Subscribing...', avgJitter: '-- ms', jitterCV: '-- %', msgRate: '--', bandwidth: '-- KB/s', totalReceived: 0, lostPackets: '--', setFrequency: '-- ms' }); 
+            renderSubscriberStats(); 
+            
+            appState.isLogVisible = true;
+            subTableContainer.style.display = 'block';
+            toggleLogBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            toggleLogBtn.title = 'Hide Log';
+
+            try { 
+                resetPacketStats(); 
+                appState.subscription = await streamr.subscribe(streamId, handleMessage); 
+                subscriberStats.subStatus = 'Subscribed'; 
+                appState.statsInterval = setInterval(updateStats, 1000); 
+                appState.renderLoopId = requestAnimationFrame(renderMessageBatch); 
+            } catch (err) { 
+                console.error(err); 
+                subscriberStats.subStatus = `Error`; 
+                alert(`Failed to subscribe: ${err.message}`); 
+            } 
+            renderSubscriberStats(); 
+        });
+
+        async function stopSubscription() { 
+            if (appState.subscription) { 
+                await appState.subscription.unsubscribe(); 
+                appState.subscription = null; 
+                subscriberStats.subStatus = 'Idle'; 
+                clearInterval(appState.statsInterval); 
+                appState.statsInterval = null; 
+                cancelAnimationFrame(appState.renderLoopId); 
+                appState.renderLoopId = null; 
+                renderSubscriberStats(); 
+            } 
+        }
+        if(unsubscribeBtn) unsubscribeBtn.addEventListener('click', stopSubscription);
+        if(clearLogBtn) clearLogBtn.addEventListener('click', () => { if(subMessages) subMessages.innerHTML = ''; appState.messageQueue = []; appState.msgTimestamps = []; resetPacketStats(); updateStats(); });
+        
+        const eyeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const eyeOffIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+        if(toggleLogBtn) {
+            toggleLogBtn.addEventListener('click', () => {
+                appState.isLogVisible = !appState.isLogVisible;
+                subTableContainer.style.display = appState.isLogVisible ? 'block' : 'none';
+                toggleLogBtn.innerHTML = appState.isLogVisible ? eyeIcon : eyeOffIcon;
+                toggleLogBtn.title = appState.isLogVisible ? 'Hide Log' : 'Show Log';
+            });
+        }
+
+        // --- Ping Tester Logic ---
+        const pingStreamIdInput = document.getElementById('pingStreamId');
+        const pingUserLocationInput = document.getElementById('pingUserLocation');
+        const pingStartBtn = document.getElementById('pingStartBtn');
+        const pingStopBtn = document.getElementById('pingStopBtn');
+        const pingLog = document.getElementById('pingLog');
+        const pingStatsContainer = pingTester.querySelector('.stats-grid');
+        const pingPayloadSizeInput = document.getElementById('pingPayloadSize');
+        if (pingPayloadSizeInput) {
+            pingPayloadSizeInput.addEventListener('input', () => {
+                if (parseInt(pingPayloadSizeInput.value, 10) > 256) {
+                    pingPayloadSizeInput.value = 256;
+                }
+            });
+        }
+        const pingFrequencyInput = document.getElementById('pingFrequency');
+        const pingFreqLabel = document.getElementById('pingFreqLabel');
+        const pingStreamIdStorageKey = 'streamr-ping-streamId';
+        const defaultPingStreamId = '0x9b9d85400191aff50df376fc09a87b8efd9bd299/ping_pong';
+
+        pingStreamIdInput.textContent = localStorage.getItem(pingStreamIdStorageKey) || defaultPingStreamId;
+        if (pingUserLocationInput) { pingUserLocationInput.value = ''; }
+        if (pingFrequencyInput) { pingFrequencyInput.addEventListener('input', () => { pingFreqLabel.textContent = `${pingFrequencyInput.value} ms`; if (appState.pingInterval) { stopPingTest(); startPingTest(); } }); }
+        
+        const pingStats = { status: 'Idle', avgLatency: '-- ms', pingsSent: 0, pongsReceived: 0, packetLoss: '-- %' };
+
+        function renderPingStats() { if (!pingStatsContainer) return; pingStatsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="pingStatus">${pingStats.status}</p></div><div class="stat-item"><h3>Avg Latency</h3><p>${pingStats.avgLatency}</p></div><div class="stat-item"><h3>Pings Sent</h3><p>${pingStats.pingsSent}</p></div><div class="stat-item"><h3>Pongs Received</h3><p>${pingStats.pongsReceived}</p></div><div class="stat-item"><h3>Packet Loss</h3><p>${pingStats.packetLoss}</p></div>`; const statusEl = document.getElementById('pingStatus'); if (statusEl) { if(pingStats.status.startsWith('Sending') || pingStats.status === 'Listening') statusEl.style.color = 'var(--success-color)'; else if (pingStats.status === 'Error') statusEl.style.color = 'var(--danger-color)'; else statusEl.style.color = 'inherit'; } }
+        renderPingStats();
+        function addPingLog(seq, direction, remotePeer = {}, latency = '-') { 
+            if (!pingLog) return; 
+            const row = document.createElement('tr'); 
+            const now = new Date();
+            let directionSymbol = '';
+            switch(direction) {
+                case 'out': directionSymbol = 'Ping ➡️'; break;
+                case 'in-pong': directionSymbol = '⬅️ Pong'; break;
+                case 'in-ping': directionSymbol = '⬅️ Ping (Replied)'; break;
+            }
+            let peerString = '-';
+            if (remotePeer && remotePeer.shortId) {
+                peerString = remotePeer.location ? `${remotePeer.shortId} (${remotePeer.location})` : remotePeer.shortId;
+            }
+            row.innerHTML = `<td>${now.toLocaleTimeString()}.${now.getMilliseconds().toString().padStart(3, '0')}</td><td>${seq}</td><td>${directionSymbol}</td><td>${peerString}</td><td>${latency}</td>`;
+            pingLog.insertBefore(row, pingLog.firstChild);
+            if(pingLog.children.length > 200) pingLog.removeChild(pingLog.lastChild);
+        }
+        function updatePingStats() { pingStats.pingsSent = appState.pingCount; pingStats.pongsReceived = appState.pongCount; if (appState.pingLatencies.length > 0) { const avg = appState.pingLatencies.reduce((a,b) => a + b, 0) / appState.pingLatencies.length; pingStats.avgLatency = `${avg.toFixed(0)} ms`; } else { pingStats.avgLatency = '-- ms'; } if (appState.pingCount > 0) { const loss = ((appState.pingCount - appState.pongCount) / appState.pingCount) * 100; pingStats.packetLoss = `${Math.max(0, loss).toFixed(1)} %`; } else { pingStats.packetLoss = '-- %'; } renderPingStats(); }
+        
+        async function startPingListener() {
+            if (appState.pingListener) return;
+            const streamId = pingStreamIdInput.textContent.trim();
+            if (!streamId) { alert('Please enter a Stream ID.'); return; }
+            const streamr = getStreamrClient();
+            pingStats.status = 'Starting listener...'; renderPingStats();
+            try {
+                const userLocation = pingUserLocationInput.value.trim();
+                appState.pingListener = await streamr.subscribe(streamId, (content) => {
+                    if (!content || !content.type || content.sender === appState.clientId) return;
+                    if (content.type === 'ping' && typeof content.seq === 'number') {
+                        streamr.publish(streamId, { type: 'pong', seq: content.seq, sender: appState.clientId, senderShortId: appState.shortClientId, senderLocation: userLocation, recipient: content.sender });
+                        addPingLog(content.seq, 'in-ping', { shortId: content.senderShortId, location: content.senderLocation });
+                    }
+                    if (content.type === 'pong' && content.recipient === appState.clientId && appState.pingTimestamps.has(content.seq)) {
+                        const pingData = appState.pingTimestamps.get(content.seq);
+                        const latency = Date.now() - pingData.sentTime;
+                        
+                        if (!pingData.replied) {
+                            appState.pongCount++;
+                            pingData.replied = true;
+                        }
+                        
+                        appState.pingLatencies.push(latency);
+                        if(appState.pingLatencies.length > 100) appState.pingLatencies.shift();
+                        addPingLog(content.seq, 'in-pong', { shortId: content.senderShortId, location: content.senderLocation }, `${latency} ms`);
+                        updatePingStats();
+                    }
+                });
+                pingStats.status = 'Listening'; renderPingStats();
+            } catch (err) {
+                console.error("Error starting ping listener:", err);
+                alert(`Error: ${err.message}`);
+                pingStats.status = 'Error'; renderPingStats();
+            }
+        }
+        async function stopPingListener() {
+            if (appState.pingListener) {
+                await appState.pingListener.unsubscribe();
+                appState.pingListener = null;
+                pingStats.status = 'Idle'; renderPingStats();
+            }
+        }
+        async function startPingTest() {
+            if (appState.pingInterval) return;
+            const streamId = pingStreamIdInput.textContent.trim();
+            if (!streamId) { alert('Please enter a Stream ID.'); return; }
+            const streamr = getStreamrClient();
+            Object.assign(appState, { pingCount: 0, pongCount: 0, pingLatencies: [] });
+            appState.pingTimestamps.clear(); 
+            if(pingLog) pingLog.innerHTML = ''; 
+            updatePingStats();
+            
+            const frequency = parseInt(pingFrequencyInput.value);
+            const payloadSizeKB = parseInt(pingPayloadSizeInput.value) || 0;
+            const userLocation = pingUserLocationInput.value.trim();
+
+            appState.pingInterval = setInterval(async () => {
+                const seq = ++appState.pingCount;
+                appState.pingTimestamps.set(seq, { sentTime: Date.now(), replied: false });
+                const message = { type: 'ping', seq: seq, sender: appState.clientId, senderShortId: appState.shortClientId, senderLocation: userLocation, payload: '' };
+                if (payloadSizeKB > 0) message.payload = randomPrintableString(payloadSizeKB * 1024);
+                
+                await streamr.publish(streamId, message);
+                addPingLog(seq, 'out');
+                setTimeout(() => updatePingStats(), 50);
+                setTimeout(() => { if (appState.pingTimestamps.has(seq)) updatePingStats(); }, 5000);
+            }, frequency);
+
+            pingStats.status = 'Sending Pings'; renderPingStats();
+        }
+        function stopPingTest() {
+            clearInterval(appState.pingInterval); appState.pingInterval = null;
+            if (appState.pingListener) {
+                pingStats.status = 'Listening';
+            } else {
+                pingStats.status = 'Idle';
+            }
+            renderPingStats();
+        }
+        if(pingStartBtn) pingStartBtn.addEventListener('click', startPingTest);
+        if(pingStopBtn) pingStopBtn.addEventListener('click', stopPingTest);
+
+        // --- Stream Explorer Logic ---
+        const explorerStreamIdInput = document.getElementById('explorerStreamId');
+        const explorerSubscribeBtn = document.getElementById('explorerSubscribeBtn');
+        const explorerUnsubscribeBtn = document.getElementById('explorerUnsubscribeBtn');
+        const explorerClearLogBtn = document.getElementById('explorerClearLogBtn');
+        const explorerMessages = document.getElementById('explorerMessages');
+        const explorerStatsContainer = document.getElementById('explorerStatsContainer');
+        const explorerStreamIdStorageKey = 'streamr-explorer-streamId';
+        const explorerPartitionNav = document.getElementById('explorerPartitionNav');
+        const explorerAllPartitionsCheckbox = document.getElementById('explorerAllPartitions');
+        const explorerPartitionSelector = document.getElementById('explorerPartitionSelector');
+        const explorerPrevPartitionBtn = document.getElementById('explorerPrevPartitionBtn');
+        const explorerNextPartitionBtn = document.getElementById('explorerNextPartitionBtn');
+        const explorerPartitionDisplay = document.getElementById('explorerPartitionDisplay');
+
+        explorerStreamIdInput.value = localStorage.getItem(explorerStreamIdStorageKey) || '';
+        
+        function updatePartitionDisplay() {
+            explorerPartitionDisplay.textContent = `${appState.explorerCurrentPartition}`;
+            explorerPrevPartitionBtn.disabled = appState.explorerCurrentPartition === 0;
+            explorerNextPartitionBtn.disabled = false;
+        }
+        
+        explorerStreamIdInput.oninput = () => {
+            localStorage.setItem(explorerStreamIdStorageKey, explorerStreamIdInput.value);
+            appState.explorerCurrentPartition = 0;
+            updatePartitionDisplay();
+        };
+
+        explorerAllPartitionsCheckbox.onchange = () => {
+            explorerPartitionSelector.style.display = explorerAllPartitionsCheckbox.checked ? 'none' : 'flex';
+            if (appState.explorerSubscription) {
+                stopStreamExplorer().then(startStreamExplorer);
+            }
+        };
+
+        explorerPrevPartitionBtn.onclick = () => {
+            if (appState.explorerCurrentPartition > 0) {
+                appState.explorerCurrentPartition--;
+                updatePartitionDisplay();
+                if (appState.explorerSubscription) {
+                    stopStreamExplorer().then(startStreamExplorer);
+                }
+            }
+        };
+
+        explorerNextPartitionBtn.onclick = () => {
+            appState.explorerCurrentPartition++;
+            updatePartitionDisplay();
+            if (appState.explorerSubscription) {
+                stopStreamExplorer().then(startStreamExplorer);
+            }
+        };
+
+        const explorerStats = { subStatus: 'Idle', msgRate: '--', bandwidth: '-- Kbps', totalReceived: 0, avgJitter: '-- ms', jitterCV: '-- %' };
+
+        function renderExplorerStats() { 
+            if (!explorerStatsContainer) return; 
+            explorerStatsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="explorerStatus">${explorerStats.subStatus}</p></div><div class="stat-item"><h3>Avg Jitter</h3><p>${explorerStats.avgJitter}</p></div><div class="stat-item"><h3>Jitter CV (%)</h3><p>${explorerStats.jitterCV}</p></div><div class="stat-item"><h3>Messages/sec</h3><p>${explorerStats.msgRate}</p></div><div class="stat-item"><h3>Bandwidth</h3><p>${explorerStats.bandwidth}</p></div><div class="stat-item"><h3>Total Received</h3><p>${explorerStats.totalReceived}</p></div>`; 
+            const statusEl = document.getElementById('explorerStatus'); 
+            if (statusEl) { 
+                if(explorerStats.subStatus === 'Subscribed') statusEl.style.color = 'var(--success-color)'; 
+                else if (explorerStats.subStatus === 'Error') statusEl.style.color = 'var(--danger-color)'; 
+                else statusEl.style.color = 'inherit'; 
+            } 
+        }
+        renderExplorerStats();
+
+        function resetExplorerStats() {
+            Object.assign(explorerStats, { subStatus: 'Idle', msgRate: '--', bandwidth: '-- KB/s', totalReceived: 0, avgJitter: '-- ms', jitterCV: '-- %' });
+            appState.explorerMsgTimestamps = [];
+            appState.explorerBytesHistory = [];
+            appState.explorerJitterData = [];
+            appState.explorerLastPacketDetails = null;
+            appState.explorerTotalReceived = 0;
+            renderExplorerStats();
+        }
+
+        function updateExplorerStats() {
+            const now = Date.now();
+
+            if (appState.explorerJitterData.length > 1) {
+                const mean = appState.explorerJitterData.reduce((a, b) => a + b, 0) / appState.explorerJitterData.length;
+                explorerStats.avgJitter = `${mean.toFixed(2)} ms`;
+                const variance = appState.explorerJitterData.map(k => Math.pow(k - mean, 2)).reduce((a, b) => a + b, 0) / appState.explorerJitterData.length;
+                const stdDev = Math.sqrt(variance);
+                if (mean > 0) { const cv = (stdDev / mean) * 100; explorerStats.jitterCV = `${cv.toFixed(2)} %`; } else { explorerStats.jitterCV = '0.00 %'; }
+            } else {
+                explorerStats.avgJitter = `-- ms`;
+                explorerStats.jitterCV = `-- %`;
+            }
+
+            const fiveSecondsAgo = now - 5000;
+            appState.explorerMsgTimestamps = appState.explorerMsgTimestamps.filter(ts => ts > fiveSecondsAgo);
+            appState.explorerBytesHistory = appState.explorerBytesHistory.filter(record => record.timestamp > fiveSecondsAgo);
+            
+            const msgCount = appState.explorerMsgTimestamps.length;
+            const totalBytes = appState.explorerBytesHistory.reduce((acc, record) => acc + record.size, 0);
+
+             if (msgCount > 1) {
+                const firstTs = appState.explorerMsgTimestamps[0];
+                const lastTs = appState.explorerMsgTimestamps[msgCount - 1];
+                const durationSeconds = (lastTs - firstTs) / 1000;
+
+                if (durationSeconds > 0) {
+                    explorerStats.msgRate = (msgCount / durationSeconds).toFixed(1);
+                    explorerStats.bandwidth = (((totalBytes * 8) / 1000) / durationSeconds).toFixed(2) + ' Kbps';
+                } else {
+                   explorerStats.msgRate = (msgCount / 5).toFixed(1);
+                   explorerStats.bandwidth = ((totalBytes * 8) / (5 * 1000)).toFixed(2) + ' Kbps';
+                }
+            } else {
+                explorerStats.msgRate = (msgCount / 5).toFixed(1);
+                explorerStats.bandwidth = ((totalBytes * 8) / (5 * 1000)).toFixed(2) + ' Kbps';
+            }
+            explorerStats.totalReceived = appState.explorerTotalReceived;
+            renderExplorerStats();
+        }
+
+        function handleExplorerMessage(content, metadata) {
+            const now = Date.now();
+            appState.explorerTotalReceived++;
+            appState.explorerMsgTimestamps.push(now);
+            appState.explorerBytesHistory.push({ timestamp: now, size: JSON.stringify(content).length });
+
+            let jitter = -1;
+            const networkTimestamp = metadata.timestamp;
+            if (networkTimestamp && appState.explorerLastPacketDetails) {
+                const sendInterval = networkTimestamp - appState.explorerLastPacketDetails.sendTime;
+                const receiveInterval = now - appState.explorerLastPacketDetails.receiveTime;
+                const currentJitter = Math.abs(receiveInterval - sendInterval);
+                appState.explorerJitterData.push(currentJitter);
+                if (appState.explorerJitterData.length > 100) appState.explorerJitterData.shift();
+                jitter = currentJitter;
+            }
+            appState.explorerLastPacketDetails = { sendTime: networkTimestamp, receiveTime: now };
+
+            appState.explorerMessageQueue.push({ content, metadata, jitter });
+        }
+
+        function renderExplorerMessageBatch() {
+            if (appState.explorerMessageQueue.length === 0 || !explorerMessages) {
+                appState.explorerRenderLoopId = requestAnimationFrame(renderExplorerMessageBatch);
+                return;
+            }
+            const fragment = document.createDocumentFragment();
+            const messagesToRender = appState.explorerMessageQueue.splice(0, 50);
+            for (const item of messagesToRender) {
+                const { content, metadata, jitter } = item;
+                const networkTs = new Date(metadata.timestamp);
+                const publisherId = metadata.publisherId;
+                const shortPublisherId = `${publisherId.substring(0, 6)}...${publisherId.substring(publisherId.length - 4)}`;
+
+                let partition = '--';
+                if (metadata.partition !== undefined) {
+                    partition = metadata.partition;
+                } else if (metadata.streamPartId && typeof metadata.streamPartId === 'string') {
+                    const partitionStr = metadata.streamPartId.split('::')[1];
+                    if (partitionStr !== undefined) {
+                        partition = partitionStr;
+                    }
+                }
+
+                const mainRow = document.createElement('tr');
+                mainRow.className = 'message-row';
+                mainRow.innerHTML = `
+                    <td>${networkTs.toLocaleTimeString()}.${networkTs.getMilliseconds().toString().padStart(3, '0')}</td>
+                    <td title="${publisherId}">${shortPublisherId}</td>
+                    <td>${partition}</td>
+                    <td>${jitter >= 0 ? `${jitter.toFixed(2)} ms` : '--'}</td>
+                `;
+
+                const payloadRow = document.createElement('tr');
+                payloadRow.className = 'payload-row';
+                payloadRow.innerHTML = `<td colspan="4" class="payload-cell"><pre class="text-xs whitespace-pre-wrap break-all">${JSON.stringify(content, null, 2)}</pre></td>`;
+
+                mainRow.addEventListener('click', () => {
+                    payloadRow.classList.toggle('is-visible');
+                });
+
+                fragment.appendChild(mainRow);
+                fragment.appendChild(payloadRow);
+            }
+            explorerMessages.insertBefore(fragment, explorerMessages.firstChild);
+            while (explorerMessages.childElementCount > 400) { // Increased limit for pairs of rows
+                explorerMessages.removeChild(explorerMessages.lastChild);
+                explorerMessages.removeChild(explorerMessages.lastChild);
+            }
+            appState.explorerRenderLoopId = requestAnimationFrame(renderExplorerMessageBatch);
+        }
+
+        async function startStreamExplorer() {
+            if (appState.explorerSubscription) return;
+            const streamId = explorerStreamIdInput.value.trim();
+            if (!streamId) { alert('Please enter a Stream ID.'); return; }
+            const streamr = getStreamrClient();
+            resetExplorerStats();
+            explorerStats.subStatus = 'Subscribing...';
+            renderExplorerStats();
+
+            try {
+                let subscription;
+                if (explorerAllPartitionsCheckbox.checked) {
+                    console.log(`Subscribing to all partitions of ${streamId}`);
+                    subscription = await streamr.subscribe(streamId, handleExplorerMessage);
+                } else {
+                    console.log(`Subscribing to partition ${appState.explorerCurrentPartition} of ${streamId}`);
+                    subscription = await streamr.subscribe({
+                        streamId: streamId,
+                        partition: appState.explorerCurrentPartition,
+                    }, handleExplorerMessage);
+                }
+
+                appState.explorerSubscription = subscription;
+                explorerStats.subStatus = 'Subscribed';
+                appState.explorerStatsInterval = setInterval(updateExplorerStats, 1000);
+                appState.explorerRenderLoopId = requestAnimationFrame(renderExplorerMessageBatch);
+            } catch (err) {
+                console.error(err);
+                explorerStats.subStatus = 'Error';
+                alert(`Failed to subscribe: ${err.message}`);
+            }
+            renderExplorerStats();
+        }
+
+        async function stopStreamExplorer() {
+            if (appState.explorerSubscription) {
+                await appState.explorerSubscription.unsubscribe();
+                appState.explorerSubscription = null;
+                explorerStats.subStatus = 'Idle';
+                clearInterval(appState.explorerStatsInterval);
+                cancelAnimationFrame(appState.explorerRenderLoopId);
+                renderExplorerStats();
+            }
+        }
+
+        explorerSubscribeBtn.onclick = startStreamExplorer;
+        explorerUnsubscribeBtn.onclick = stopStreamExplorer;
+
+        explorerClearLogBtn.onclick = () => {
+            explorerMessages.innerHTML = '';
+            appState.explorerMessageQueue = [];
+            resetExplorerStats();
+        };
+
+    </script>
+</body>
+</html>
+
+
