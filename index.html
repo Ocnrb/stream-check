@@ -75,17 +75,39 @@
         .icon-btn:hover { background: var(--border-color); }
         label { font-weight: 600; margin-bottom: 0.35rem; display:block; color:#d0d0d0; }
         .small-note { color:var(--text-secondary); font-size:0.9rem; }
-        #menu, #bandwidthTester, #pingTester, #streamExplorer { display:none; }
-        #menu.active, #bandwidthTester.active, #pingTester.active, #streamExplorer.active { display:block; }
+        #menu, #bandwidthTester, #pingTester, #streamExplorer, #streamCrawler { display:none; }
+        #menu.active, #bandwidthTester.active, #pingTester.active, #streamExplorer.active, #streamCrawler.active { display:block; }
         .table-container { max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); text-align: left; }
         th { background: #252525; position: sticky; top: 0; z-index: 1; font-weight: 600; }
         tr:last-child td { border-bottom: none; }
+        /* Resizable columns */
+        .resizable-table { table-layout: fixed; }
+        .resizable-table th { position: relative; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .resizable-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+        }
+        .resize-handle:hover, .resize-handle.resizing {
+            background: var(--accent-color);
+        }
         #subMessages tr:hover, #explorerMessages tr:hover { background-color: rgba(180, 180, 180, 0.05); }
         .message-row { cursor: pointer; }
         .stream-search-row { cursor: pointer; transition: background-color 0.2s; }
         .stream-search-row:hover { background-color: rgba(180, 180, 180, 0.05); }
+        .stream-search-row.selected { 
+            background-color: rgba(74, 144, 226, 0.15); 
+            border-left: 3px solid var(--accent-color);
+        }
+        .stream-search-row.selected:hover { background-color: rgba(74, 144, 226, 0.2); }
         .payload-row { display: none; }
         .payload-row.is-visible { display: table-row; }
         .payload-cell { background-color: rgba(0,0,0,0.2); }
@@ -172,6 +194,161 @@
             border-top-color: var(--text-secondary);
             transform: translateY(-25%);
         }
+        /* Slider styles */
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            background: var(--bg-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            outline: none;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        .slider-limits {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding: 0 2px;
+        }
+        /* Spinner for retest */
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Compact crawler table */
+        #crawlerTable {
+            font-size: 0.75rem;
+        }
+        #crawlerTable th {
+            padding: 0.4rem 0.5rem;
+            font-size: 0.7rem;
+        }
+        #crawlerTable td {
+            padding: 0.25rem 0.5rem;
+        }
+        #crawlerTable .font-mono {
+            font-size: 0.7rem;
+        }
+        /* Sortable crawler table headers */
+        .crawler-sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .crawler-sortable:hover {
+            background-color: var(--border-color);
+        }
+        .crawler-sortable .sort-indicator {
+            margin-left: 4px;
+            opacity: 0.5;
+        }
+        .crawler-sortable.sort-asc .sort-indicator::after { content: '▲'; }
+        .crawler-sortable.sort-desc .sort-indicator::after { content: '▼'; }
+        .crawler-sortable.sort-asc .sort-indicator,
+        .crawler-sortable.sort-desc .sort-indicator { opacity: 1; }
+        /* Expandable partition details */
+        .partition-row {
+            cursor: pointer;
+        }
+        .partition-row:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .partition-row.expanded {
+            background-color: rgba(0, 184, 148, 0.1);
+        }
+        .partition-details-row {
+            display: none;
+        }
+        .partition-details-row.visible {
+            display: table-row;
+        }
+        .partition-details-row td {
+            padding: 0 !important;
+        }
+        .partition-details-container {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 1rem;
+            border-left: 3px solid var(--accent-color);
+            margin-left: 1rem;
+        }
+        .partition-details-table {
+            width: 100%;
+            font-size: 0.7rem;
+        }
+        .partition-details-table th {
+            text-align: left;
+            padding: 0.2rem 0.5rem;
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+        .partition-details-table td {
+            padding: 0.2rem 0.5rem;
+        }
+        .expand-icon {
+            display: inline-block;
+            margin-right: 4px;
+            transition: transform 0.2s;
+            font-size: 0.65rem;
+        }
+        .partition-row.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-6">
@@ -184,7 +361,7 @@
 
         <h1 class="text-4xl font-bold mb-2">Streamr Test App</h1>
         <p class="small-note mb-8">Choose a network test tool</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 justify-center gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 justify-center gap-6">
             <button id="openBandwidthTester" class="main-menu-btn text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
                 Bandwidth Test <svg class="w-8 h-8 mt-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
             </button>
@@ -193,6 +370,9 @@
             </button>
             <button id="openStreamExplorer" class="main-menu-btn text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
                 Stream Explorer <svg class="w-8 h-8 mt-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </button>
+            <button id="openStreamCrawler" class="main-menu-btn text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
+                Stream Crawler <svg class="w-8 h-8 mt-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path><path d="M15 6l3 3"></path><circle cx="12" cy="12" r="10" stroke-dasharray="4 2"></circle></svg>
             </button>
         </div>
     </div>
@@ -373,10 +553,14 @@
                     </button>
                 </div>
             </div>
-             <div class="flex items-center justify-between mb-4">
+             <div class="flex items-center justify-between mb-4 gap-4">
                 <label class="checkbox-label">
                     <input type="checkbox" id="explorerSearchSponsorship" class="checkbox">
                     <span>Only show streams with an active sponsorship</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="explorerExcludeCoordination" class="checkbox" checked>
+                    <span>Exclude coordination streams</span>
                 </label>
             </div>
             
@@ -451,11 +635,154 @@
         </div>
     </div>
 
+    <!-- Stream Crawler View -->
+    <div id="streamCrawler" class="container" style="max-width: 95vw; width: 95vw;">
+        <div class="flex justify-between items-start">
+            <button class="back-btn icon-btn mb-4" title="Back to menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div class="w-full">
+                <div class="view-header">
+                    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <h1>Stream Crawler</h1>
+                </div>
+            </div>
+            <div class="w-11"></div>
+        </div>
+
+        <!-- Crawler Configuration -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="slider-container">
+                <label for="crawlerTestDuration">Test Duration per Stream</label>
+                <div class="slider-row">
+                    <input type="range" id="crawlerTestDuration" min="5" max="120" value="30">
+                    <span id="crawlerTestDurationValue" class="slider-value">30s</span>
+                </div>
+                <div class="slider-limits"><span>5s</span><span>120s</span></div>
+            </div>
+            <div class="slider-container">
+                <label for="crawlerTimeout">No Data Timeout</label>
+                <div class="slider-row">
+                    <input type="range" id="crawlerTimeout" min="10" max="120" value="60">
+                    <span id="crawlerTimeoutValue" class="slider-value">60s</span>
+                </div>
+                <div class="slider-limits"><span>10s</span><span>120s</span></div>
+            </div>
+            <div class="slider-container">
+                <label for="crawlerSlots">Concurrent Slots</label>
+                <div class="slider-row">
+                    <input type="range" id="crawlerSlots" min="1" max="50" value="3">
+                    <span id="crawlerSlotsValue" class="slider-value">3</span>
+                </div>
+                <div class="slider-limits"><span>1</span><span>50</span></div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <label class="checkbox-label">
+                <input type="checkbox" id="crawlerPrioritizeSponsored" class="checkbox" checked>
+                <span>Prioritize sponsored streams</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="crawlerExcludeCoordination" class="checkbox" checked>
+                <span>Exclude coordination streams</span>
+            </label>
+            <label class="checkbox-label" title="Waits until jitter stabilizes before collecting data (CV < 30% over 2 seconds)">
+                <input type="checkbox" id="crawlerSmartWarmup" class="checkbox" checked>
+                <span>Smart Warmup (detect stability)</span>
+            </label>
+        </div>
+
+        <!-- Crawler Controls -->
+        <div class="flex gap-4 mb-4 items-center justify-center flex-wrap">
+            <button id="crawlerStartBtn" class="btn btn-primary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Start Crawling
+            </button>
+            <button id="crawlerStopBtn" class="btn btn-danger flex items-center gap-2" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                Stop
+            </button>
+            <button id="crawlerResetBtn" class="btn btn-secondary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                Reset Data
+            </button>
+            <button id="crawlerExportBtn" class="btn btn-secondary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export CSV
+            </button>
+        </div>
+
+        <!-- Crawler Status -->
+        <div class="flex flex-wrap gap-4 mb-4">
+            <!-- Test Progress Section -->
+            <div class="flex-1 min-w-[280px] p-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg">
+                <h4 class="text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Test Progress</h4>
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div><p class="text-lg font-bold" id="crawlerStatus">Idle</p><span class="text-xs text-[var(--text-secondary)]">Status</span></div>
+                    <div><p class="text-lg font-bold" id="crawlerCycle">0</p><span class="text-xs text-[var(--text-secondary)]">Cycle</span></div>
+                    <div><p class="text-lg font-bold" id="crawlerProgress">0/0</p><span class="text-xs text-[var(--text-secondary)]">Progress</span></div>
+                    <div><p class="text-lg font-bold" id="crawlerActiveSlots">0</p><span class="text-xs text-[var(--text-secondary)]">Active</span></div>
+                </div>
+            </div>
+            
+            <!-- Stream Stats Section -->
+            <div class="flex-1 min-w-[200px] p-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg">
+                <h4 class="text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Streams</h4>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div><p class="text-lg font-bold text-[var(--accent-color)]" id="crawlerStreamsTested">0</p><span class="text-xs text-[var(--text-secondary)]">Unique</span></div>
+                    <div><p class="text-lg font-bold text-green-400" id="crawlerStreamsWithData">0</p><span class="text-xs text-[var(--text-secondary)]">With Data</span></div>
+                    <div><p class="text-lg font-bold text-gray-500" id="crawlerStreamsNoData">0</p><span class="text-xs text-[var(--text-secondary)]">No Data</span></div>
+                </div>
+            </div>
+            
+            <!-- Network Estimates Section -->
+            <div class="flex-1 min-w-[350px] p-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg">
+                <h4 class="text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Estimated Network Totals</h4>
+                <div class="grid grid-cols-5 gap-2 text-center">
+                    <div><p class="text-lg font-bold" id="crawlerEstNetworkBW">--</p><span class="text-xs text-[var(--text-secondary)]">Avg BW</span></div>
+                    <div><p class="text-lg font-bold" id="crawlerPeakBW">--</p><span class="text-xs text-[var(--text-secondary)]">Peak BW</span></div>
+                    <div><p class="text-lg font-bold" id="crawlerEstNetworkMsgSec">--</p><span class="text-xs text-[var(--text-secondary)]">Avg msg/s</span></div>
+                    <div><p class="text-lg font-bold" id="crawlerPeakMsgSec">--</p><span class="text-xs text-[var(--text-secondary)]">Peak msg/s</span></div>
+                    <div><p class="text-lg font-bold text-[var(--accent-color)]" id="crawlerDailyTraffic">--</p><span class="text-xs text-[var(--text-secondary)]">24H Traffic</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Testing Info -->
+        <div id="crawlerCurrentTests" class="mb-4 p-4 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg">
+            <h3 class="text-sm font-semibold mb-2 text-[var(--text-secondary)]">Currently Testing:</h3>
+            <div id="crawlerActiveStreams" class="text-sm font-mono">--</div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="table-container" style="max-height: 60vh; overflow-x: auto;">
+            <table id="crawlerTable" class="resizable-table">
+                <thead id="crawlerTableHead">
+                    <tr>
+                        <th class="crawler-sortable" data-sort-key="streamId" style="min-width: 300px;">Stream ID<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="partitions" style="width: 80px;">Partitions<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="avgJitter" style="width: 100px;">Avg Jitter<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="jitterCV" style="width: 90px;">Jitter CV<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="peakBandwidth" style="width: 110px;">Peak BW<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="avgBandwidth" style="width: 110px;">Avg BW<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="messagesReceived" style="width: 90px;">Messages<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="avgMsgSec" style="width: 95px;">Avg msg/s<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="peakMsgSec" style="width: 100px;">Peak msg/s<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="testDuration" style="width: 85px;">Test Time<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                        <th class="crawler-sortable" data-sort-key="testCount" style="width: 65px;">Tests<span class="sort-indicator"></span><span class="resize-handle"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="crawlerResults"></tbody>
+            </table>
+        </div>
+    </div>
+
 
     <script src="https://unpkg.com/@streamr/sdk@103.1.0/dist/streamr-sdk.web.js"></script>
     <script>
         // --- TheGraph API Configuration ---
-        const THE_GRAPH_API_URL = 'https://gateway.thegraph.com/api/bb77dd994c8e90edcbd73661a326f068/subgraphs/id/EGWFdhhiWypDuz22Uy7b3F69E9MEkyfU9iAQMttkH5Rj';
+        const THE_GRAPH_API_URL = 'https://gateway.thegraph.com/api/d8acda6777ed7cbaccfd3f1102d447f6/subgraphs/id/EGWFdhhiWypDuz22Uy7b3F69E9MEkyfU9iAQMttkH5Rj';
         
         /**
          * Helper function to query The Graph API.
@@ -497,9 +824,11 @@
             subscription: null,
             explorerSubscription: null, // Will become an array of subscriptions
             msgTimestamps: [], bytesHistory: [], statsInterval: null, publishLoopTimeout: null,
+            totalBytesReceived: 0, // Total bytes received (cumulative)
             explorerMsgTimestamps: [], explorerBytesHistory: [], explorerStatsInterval: null,
             explorerJitterData: [], explorerLastPacketDetails: null,
             explorerTotalReceived: 0,
+            explorerTotalBytesReceived: 0, // Total bytes received in explorer (cumulative)
             explorerCurrentPartition: 0,
             explorerPartitionCount: 1, // Add partition count to app state
             jitterData: [], lastPacketDetails: null,
@@ -516,6 +845,22 @@
             explorerLastSearchResults: [], // To store results for client-side sorting
             explorerSortKey: 'updatedAt',      // Default sort key
             explorerSortDirection: 'desc',     // Default sort direction
+            // Stream Crawler state
+            crawlerIsRunning: false,
+            crawlerStreamsQueue: [],           // Queue of streams to test
+            crawlerActiveTests: new Map(),     // Currently active tests: streamId -> testData
+            crawlerActivePartitions: new Map(), // Active partition tests: "streamId:partition" -> partitionTestData
+            crawlerResults: new Map(),         // Accumulated results: streamId -> aggregated data (includes partitionData array)
+            crawlerAllStreams: [],             // All streams for cycling
+            crawlerTotalStreams: 0,
+            crawlerTestedCount: 0,             // Tests in current cycle
+            crawlerCycleCount: 0,              // Number of complete cycles
+            crawlerWithDataCount: 0,
+            crawlerNoDataCount: 0,
+            crawlerHighTrafficThreshold: 50,   // msgs/sec threshold for high traffic
+            crawlerSortKey: null,              // null = default (creation order), or column name
+            crawlerSortDirection: 'desc',      // 'asc', 'desc'
+            crawlerExpandedRows: new Set(),    // Set of expanded stream IDs for partition details
         };
 
         // --- Utility Functions (Globally Scoped) ---
@@ -529,6 +874,7 @@
             const bandwidthTester = document.getElementById('bandwidthTester');
             const pingTester = document.getElementById('pingTester');
             const streamExplorer = document.getElementById('streamExplorer');
+            const streamCrawler = document.getElementById('streamCrawler');
             const publisherContent = document.getElementById('publisherContent');
             const subscriberContent = document.getElementById('subscriberContent');
             const showPublisherTabBtn = document.getElementById('showPublisherTab');
@@ -555,6 +901,7 @@
             // New Stream Search UI Elements
             const explorerSearchTerm = document.getElementById('explorerSearchTerm');
             const explorerSearchSponsorship = document.getElementById('explorerSearchSponsorship');
+            const explorerExcludeCoordination = document.getElementById('explorerExcludeCoordination');
             const explorerSearchBtn = document.getElementById('explorerSearchBtn');
             const streamSearchResultsContainer = document.getElementById('streamSearchResultsContainer');
             const streamSearchResults = document.getElementById('streamSearchResults');
@@ -616,7 +963,7 @@
             }
 
             function showView(viewToShow) {
-                [menu, bandwidthTester, pingTester, streamExplorer].forEach(view => view.classList.toggle('active', view === viewToShow));
+                [menu, bandwidthTester, pingTester, streamExplorer, streamCrawler].forEach(view => view.classList.toggle('active', view === viewToShow));
             }
             
             function showBandwidthTab(tabName) {
@@ -688,12 +1035,30 @@
                 updatePaginationControls();
                 updateSortHeaders();
                 updatePartitionDisplay(); // <-- This call will now work
+                // Trigger automatic search when opening Stream Explorer
+                appState.explorerSearchPage = 0;
+                executeStreamSearch(0);
+            };
+            document.getElementById('openStreamCrawler').onclick = () => {
+                showView(streamCrawler);
+                initCrawlerUI();
             };
             showPublisherTabBtn.onclick = () => showBandwidthTab('publisher');
             showSubscriberTabBtn.onclick = () => showBandwidthTab('subscriber');
             document.querySelectorAll('.back-btn').forEach(btn => {
-                btn.onclick = () => {
+                btn.onclick = async () => {
                     stopLoop(); stopSubscription(); stopPingTest(); stopPingListener(); stopStreamExplorer();
+                    // Stop crawler if running
+                    if (appState.crawlerIsRunning) {
+                        appState.crawlerIsRunning = false;
+                        for (const [_, test] of appState.crawlerActivePartitions) {
+                            if (test.subscription) {
+                                try { await test.subscription.unsubscribe(); } catch (e) {}
+                            }
+                        }
+                        appState.crawlerActivePartitions.clear();
+                        appState.crawlerActiveTests.clear();
+                    }
                     showView(menu);
                 };
             });
@@ -820,10 +1185,10 @@
             const toggleLogBtn = document.getElementById('toggleLogBtn');
             const subTableContainer = subscriberContent ? subscriberContent.querySelector('.table-container') : null;
 
-            const subscriberStats = { subStatus: 'Idle', avgJitter: '-- ms', jitterCV: '-- %', msgRate: '--', bandwidth: '-- Kbps', totalReceived: 0, lostPackets: '--', setFrequency: '-- ms' };
-            function renderSubscriberStats() { if (!statsContainer) return; statsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="subStatus">${subscriberStats.subStatus}</p></div><div class="stat-item"><h3>Avg Jitter</h3><p>${subscriberStats.avgJitter}</p></div><div class="stat-item"><h3>Jitter CV (%)</h3><p>${subscriberStats.jitterCV}</p></div><div class="stat-item"><h3>Set Frequency</h3><p>${subscriberStats.setFrequency}</p></div><div class="stat-item"><h3>Messages/sec</h3><p>${subscriberStats.msgRate}</p></div><div class="stat-item"><h3>Bandwidth</h3><p>${subscriberStats.bandwidth}</p></div><div class="stat-item"><h3>Total Received</h3><p>${subscriberStats.totalReceived}</p></div><div class="stat-item"><h3>Lost Packets</h3><p>${subscriberStats.lostPackets}</p></div>`; const statusEl = document.getElementById('subStatus'); if (statusEl) { if(subscriberStats.subStatus === 'Subscribed') statusEl.style.color = 'var(--success-color)'; else if (subscriberStats.subStatus === 'Error') statusEl.style.color = 'var(--danger-color)'; else statusEl.style.color = 'inherit'; } }
+            const subscriberStats = { subStatus: 'Idle', avgJitter: '-- ms', jitterCV: '-- %', msgRate: '--', bandwidth: '-- Kbps', totalReceived: 0, totalReceivedMB: '0.00 MB', lostPackets: '--', setFrequency: '-- ms' };
+            function renderSubscriberStats() { if (!statsContainer) return; statsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="subStatus">${subscriberStats.subStatus}</p></div><div class="stat-item"><h3>Avg Jitter</h3><p>${subscriberStats.avgJitter}</p></div><div class="stat-item"><h3>Jitter CV (%)</h3><p>${subscriberStats.jitterCV}</p></div><div class="stat-item"><h3>Set Frequency</h3><p>${subscriberStats.setFrequency}</p></div><div class="stat-item"><h3>Messages/sec</h3><p>${subscriberStats.msgRate}</p></div><div class="stat-item"><h3>Bandwidth</h3><p>${subscriberStats.bandwidth}</p></div><div class="stat-item"><h3>Total Received</h3><p>${subscriberStats.totalReceived}</p></div><div class="stat-item"><h3>Total Data</h3><p>${subscriberStats.totalReceivedMB}</p></div><div class="stat-item"><h3>Lost Packets</h3><p>${subscriberStats.lostPackets}</p></div>`; const statusEl = document.getElementById('subStatus'); if (statusEl) { if(subscriberStats.subStatus === 'Subscribed') statusEl.style.color = 'var(--success-color)'; else if (subscriberStats.subStatus === 'Error') statusEl.style.color = 'var(--danger-color)'; else statusEl.style.color = 'inherit'; } }
             if (statsContainer) renderSubscriberStats();
-            function resetPacketStats() { Object.assign(appState, { firstPacketCount: null, lastPacketCount: 0, totalPacketsReceived: 0, lostPackets: 0, bytesHistory: [], jitterData: [], lastPacketDetails: null, msgTimestamps: [] }); }
+            function resetPacketStats() { Object.assign(appState, { firstPacketCount: null, lastPacketCount: 0, totalPacketsReceived: 0, lostPackets: 0, bytesHistory: [], jitterData: [], lastPacketDetails: null, msgTimestamps: [], totalBytesReceived: 0 }); }
             function updateStats() {
                 const now = Date.now();
                 if (appState.jitterData.length > 1) {
@@ -862,6 +1227,7 @@
                 }
 
                 subscriberStats.totalReceived = appState.totalPacketsReceived;
+                subscriberStats.totalReceivedMB = (appState.totalBytesReceived / (1024 * 1024)).toFixed(2) + ' MB';
                 subscriberStats.lostPackets = appState.firstPacketCount === null ? '--' : appState.lostPackets;
                 renderSubscriberStats();
             }
@@ -885,8 +1251,10 @@
                 } 
                 
                 appState.lastPacketDetails = { sendTime: networkTimestamp, receiveTime: now }; 
-                appState.msgTimestamps.push(now); 
-                appState.bytesHistory.push({ timestamp: now, size: JSON.stringify(content).length }); 
+                appState.msgTimestamps.push(now);
+                const messageSize = JSON.stringify(content).length;
+                appState.bytesHistory.push({ timestamp: now, size: messageSize });
+                appState.totalBytesReceived += messageSize;
                 appState.messageQueue.push({ msg: {timestampMs, count, payload}, metadata, jitter, receiveTime: now }); 
             }
 
@@ -1248,6 +1616,7 @@
             async function executeStreamSearch(pageOffset = 0) {
                 const searchTerm = explorerSearchTerm.value.trim();
                 const withSponsorship = explorerSearchSponsorship.checked;
+                const excludeCoordination = explorerExcludeCoordination.checked;
                 
                 streamSearchStatus.textContent = 'Searching...';
                 streamSearchResultsContainer.style.display = 'none';
@@ -1270,6 +1639,10 @@
                     // and that sponsorship isRunning
                     // Changed from totalStakedWei_gt to spotAPY_gt per user request
                     whereConditions.push(`sponsorships_: { isRunning: true, spotAPY_gt: "0" }`);
+                }
+                if (excludeCoordination) {
+                    // Exclude streams that contain "/coordination" in their ID
+                    whereConditions.push(`idAsString_not_contains_nocase: "/coordination"`);
                 }
 
                 const query = `
@@ -1357,12 +1730,22 @@
             streamSearchResults.addEventListener('click', (e) => {
                 const target = e.target.closest('.stream-search-row');
                 if (target) {
+                    // Remove selected class from all rows
+                    streamSearchResults.querySelectorAll('.stream-search-row.selected').forEach(row => {
+                        row.classList.remove('selected');
+                    });
+                    // Add selected class to clicked row
+                    target.classList.add('selected');
+                    
                     const streamId = target.dataset.streamId;
                     explorerStreamIdInput.value = streamId;
                     // Trigger the same logic as manually typing
                     explorerStreamIdInput.oninput(); 
                     // Automatically fetch partition count
                     fetchStreamPartitionCount(streamId);
+                    
+                    // Scroll to the subscription section smoothly
+                    explorerStreamIdInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             });
 
@@ -1455,11 +1838,11 @@
                 }
             };
 
-            const explorerStats = { subStatus: 'Idle', msgRate: '--', bandwidth: '-- Kbps', totalReceived: 0, avgJitter: '-- ms', jitterCV: '-- %' };
+            const explorerStats = { subStatus: 'Idle', msgRate: '--', bandwidth: '-- Kbps', totalReceived: 0, totalReceivedMB: '0.00 MB', avgJitter: '-- ms', jitterCV: '-- %' };
 
             function renderExplorerStats() { 
                 if (!explorerStatsContainer) return; 
-                explorerStatsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="explorerStatus">${explorerStats.subStatus}</p></div><div class="stat-item"><h3>Avg Jitter</h3><p>${explorerStats.avgJitter}</p></div><div class="stat-item"><h3>Jitter CV (%)</h3><p>${explorerStats.jitterCV}</p></div><div class="stat-item"><h3>Messages/sec</h3><p>${explorerStats.msgRate}</p></div><div class="stat-item"><h3>Bandwidth</h3><p>${explorerStats.bandwidth}</p></div><div class="stat-item"><h3>Total Received</h3><p>${explorerStats.totalReceived}</p></div>`; 
+                explorerStatsContainer.innerHTML = `<div class="stat-item"><h3>Status</h3><p id="explorerStatus">${explorerStats.subStatus}</p></div><div class="stat-item"><h3>Avg Jitter</h3><p>${explorerStats.avgJitter}</p></div><div class="stat-item"><h3>Jitter CV (%)</h3><p>${explorerStats.jitterCV}</p></div><div class="stat-item"><h3>Messages/sec</h3><p>${explorerStats.msgRate}</p></div><div class="stat-item"><h3>Bandwidth</h3><p>${explorerStats.bandwidth}</p></div><div class="stat-item"><h3>Total Received</h3><p>${explorerStats.totalReceived}</p></div><div class="stat-item"><h3>Total Data</h3><p>${explorerStats.totalReceivedMB}</p></div>`; 
                 const statusEl = document.getElementById('explorerStatus'); 
                 if (statusEl) { 
                     if(explorerStats.subStatus === 'Subscribed') statusEl.style.color = 'var(--success-color)'; 
@@ -1470,12 +1853,13 @@
             renderExplorerStats();
 
             function resetExplorerStats() {
-                Object.assign(explorerStats, { subStatus: 'Idle', msgRate: '--', bandwidth: '-- KB/s', totalReceived: 0, avgJitter: '-- ms', jitterCV: '-- %' });
+                Object.assign(explorerStats, { subStatus: 'Idle', msgRate: '--', bandwidth: '-- KB/s', totalReceived: 0, totalReceivedMB: '0.00 MB', avgJitter: '-- ms', jitterCV: '-- %' });
                 appState.explorerMsgTimestamps = [];
                 appState.explorerBytesHistory = [];
                 appState.explorerJitterData = [];
                 appState.explorerLastPacketDetails = null;
                 appState.explorerTotalReceived = 0;
+                appState.explorerTotalBytesReceived = 0;
                 renderExplorerStats();
             }
 
@@ -1517,6 +1901,7 @@
                     explorerStats.bandwidth = ((totalBytes * 8) / (5 * 1000)).toFixed(2) + ' Kbps';
                 }
                 explorerStats.totalReceived = appState.explorerTotalReceived;
+                explorerStats.totalReceivedMB = (appState.explorerTotalBytesReceived / (1024 * 1024)).toFixed(2) + ' MB';
                 renderExplorerStats();
             }
 
@@ -1524,7 +1909,9 @@
                 const now = Date.now();
                 appState.explorerTotalReceived++;
                 appState.explorerMsgTimestamps.push(now);
-                appState.explorerBytesHistory.push({ timestamp: now, size: JSON.stringify(content).length });
+                const messageSize = JSON.stringify(content).length;
+                appState.explorerBytesHistory.push({ timestamp: now, size: messageSize });
+                appState.explorerTotalBytesReceived += messageSize;
 
                 let jitter = -1;
                 const networkTimestamp = metadata.timestamp;
@@ -1682,6 +2069,1119 @@
                 // Clear the pending message queue
                 appState.explorerMessageQueue = [];
             };
+
+            // --- Stream Crawler Logic ---
+            const crawlerTestDuration = document.getElementById('crawlerTestDuration');
+            const crawlerTimeout = document.getElementById('crawlerTimeout');
+            const crawlerSlots = document.getElementById('crawlerSlots');
+            const crawlerTestDurationValue = document.getElementById('crawlerTestDurationValue');
+            const crawlerTimeoutValue = document.getElementById('crawlerTimeoutValue');
+            const crawlerSlotsValue = document.getElementById('crawlerSlotsValue');
+            const crawlerPrioritizeSponsored = document.getElementById('crawlerPrioritizeSponsored');
+            const crawlerExcludeCoordination = document.getElementById('crawlerExcludeCoordination');
+            const crawlerSmartWarmup = document.getElementById('crawlerSmartWarmup');
+            const crawlerStartBtn = document.getElementById('crawlerStartBtn');
+            const crawlerStopBtn = document.getElementById('crawlerStopBtn');
+            const crawlerExportBtn = document.getElementById('crawlerExportBtn');
+            const crawlerStatusEl = document.getElementById('crawlerStatus');
+            const crawlerCycleEl = document.getElementById('crawlerCycle');
+            const crawlerProgressEl = document.getElementById('crawlerProgress');
+            const crawlerActiveSlotsEl = document.getElementById('crawlerActiveSlots');
+            const crawlerStreamsTestedEl = document.getElementById('crawlerStreamsTested');
+            const crawlerStreamsWithDataEl = document.getElementById('crawlerStreamsWithData');
+            const crawlerStreamsNoDataEl = document.getElementById('crawlerStreamsNoData');
+            const crawlerEstNetworkBWEl = document.getElementById('crawlerEstNetworkBW');
+            const crawlerPeakBWEl = document.getElementById('crawlerPeakBW');
+            const crawlerEstNetworkMsgSecEl = document.getElementById('crawlerEstNetworkMsgSec');
+            const crawlerPeakMsgSecEl = document.getElementById('crawlerPeakMsgSec');
+            const crawlerDailyTrafficEl = document.getElementById('crawlerDailyTraffic');
+            const crawlerActiveStreamsEl = document.getElementById('crawlerActiveStreams');
+            const crawlerResultsTable = document.getElementById('crawlerResults');
+            const crawlerTable = document.getElementById('crawlerTable');
+            const crawlerTableHead = document.getElementById('crawlerTableHead');
+
+            // Slider value update handlers (works during test)
+            crawlerTestDuration.addEventListener('input', () => {
+                crawlerTestDurationValue.textContent = crawlerTestDuration.value + 's';
+            });
+            crawlerTimeout.addEventListener('input', () => {
+                crawlerTimeoutValue.textContent = crawlerTimeout.value + 's';
+            });
+            crawlerSlots.addEventListener('input', () => {
+                crawlerSlotsValue.textContent = crawlerSlots.value;
+            });
+
+            // --- Resizable Columns Logic ---
+            function initResizableColumns(table) {
+                if (!table) return;
+                
+                const headers = table.querySelectorAll('th');
+                let currentHandle = null;
+                let startX = 0;
+                let startWidth = 0;
+                let currentTh = null;
+
+                headers.forEach(th => {
+                    const handle = th.querySelector('.resize-handle');
+                    if (!handle) return;
+
+                    handle.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        currentHandle = handle;
+                        currentTh = th;
+                        startX = e.pageX;
+                        startWidth = th.offsetWidth;
+                        handle.classList.add('resizing');
+                        document.body.style.cursor = 'col-resize';
+                        document.body.style.userSelect = 'none';
+                    });
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!currentHandle) return;
+                    const diff = e.pageX - startX;
+                    const newWidth = Math.max(50, startWidth + diff); // Minimum 50px
+                    currentTh.style.width = newWidth + 'px';
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (currentHandle) {
+                        currentHandle.classList.remove('resizing');
+                        currentHandle = null;
+                        currentTh = null;
+                        document.body.style.cursor = '';
+                        document.body.style.userSelect = '';
+                    }
+                });
+            }
+
+            // Initialize resizable columns for crawler table
+            initResizableColumns(crawlerTable);
+
+            function initCrawlerUI() {
+                updateCrawlerStatus();
+            }
+
+            function updateCrawlerStatus() {
+                crawlerCycleEl.textContent = appState.crawlerCycleCount;
+                crawlerProgressEl.textContent = `${appState.crawlerTestedCount} / ${appState.crawlerTotalStreams}`;
+                crawlerActiveSlotsEl.textContent = appState.crawlerActivePartitions.size; // Count active partitions
+                crawlerStreamsTestedEl.textContent = appState.crawlerResults.size; // Unique streams
+                crawlerStreamsWithDataEl.textContent = appState.crawlerWithDataCount;
+                crawlerStreamsNoDataEl.textContent = appState.crawlerNoDataCount;
+                
+                // Calculate estimated network totals from accumulated results
+                const resultsArray = Array.from(appState.crawlerResults.values());
+                if (resultsArray.length > 0) {
+                    const streamsWithData = resultsArray.filter(r => r.messagesReceived > 0);
+                    
+                    // Sum of averages
+                    const totalBandwidth = streamsWithData.reduce((sum, r) => sum + r.avgBandwidth, 0);
+                    const totalMsgSec = streamsWithData.reduce((sum, r) => sum + r.avgMsgSec, 0);
+                    
+                    // Sum of peaks
+                    const totalPeakBandwidth = streamsWithData.reduce((sum, r) => sum + r.peakBandwidth, 0);
+                    const totalPeakMsgSec = streamsWithData.reduce((sum, r) => sum + r.peakMsgSec, 0);
+                    
+                    // Calculate 24H traffic in GB/day (avgBandwidth is in Kbps)
+                    // Kbps * 1000 = bps, / 8 = Bytes/s, * 86400 = Bytes/day, / 1e9 = GB/day
+                    const dailyTrafficGB = (totalBandwidth * 1000 / 8 * 86400) / 1e9;
+                    
+                    // Format bandwidth (convert to Mbps if >= 10000 Kbps)
+                    crawlerEstNetworkBWEl.textContent = formatBandwidth(totalBandwidth);
+                    crawlerPeakBWEl.textContent = formatBandwidth(totalPeakBandwidth);
+                    crawlerEstNetworkMsgSecEl.textContent = totalMsgSec.toFixed(1) + ' msg/s';
+                    crawlerPeakMsgSecEl.textContent = totalPeakMsgSec.toFixed(1) + ' msg/s';
+                    
+                    // Format daily traffic
+                    if (dailyTrafficGB >= 1000) {
+                        crawlerDailyTrafficEl.textContent = (dailyTrafficGB / 1000).toFixed(2) + ' TB/day';
+                    } else {
+                        crawlerDailyTrafficEl.textContent = dailyTrafficGB.toFixed(2) + ' GB/day';
+                    }
+                } else {
+                    crawlerEstNetworkBWEl.textContent = '--';
+                    crawlerPeakBWEl.textContent = '--';
+                    crawlerEstNetworkMsgSecEl.textContent = '--';
+                    crawlerPeakMsgSecEl.textContent = '--';
+                    crawlerDailyTrafficEl.textContent = '--';
+                }
+                
+                // Update active streams display showing partition details
+                if (appState.crawlerActivePartitions.size === 0) {
+                    crawlerActiveStreamsEl.textContent = '--';
+                } else {
+                    // Group active partitions by stream
+                    const streamPartitions = new Map();
+                    for (const [key, _] of appState.crawlerActivePartitions) {
+                        const [streamId, partition] = key.split(':');
+                        if (!streamPartitions.has(streamId)) {
+                            streamPartitions.set(streamId, []);
+                        }
+                        streamPartitions.get(streamId).push(parseInt(partition));
+                    }
+                    
+                    const activeList = Array.from(streamPartitions.entries())
+                        .map(([id, partitions]) => {
+                            const shortId = id.length > 40 ? id.substring(0, 37) + '...' : id;
+                            const partStr = partitions.sort((a,b) => a-b).join(',');
+                            return `[${shortId}] p:${partStr}`;
+                        })
+                        .join('\n');
+                    crawlerActiveStreamsEl.textContent = activeList;
+                }
+            }
+
+            /**
+             * Merge new result with existing accumulated data using weighted average
+             */
+            function mergeResultData(existing, newResult) {
+                if (!existing) {
+                    return {
+                        ...newResult,
+                        testCount: 1,
+                        createdAt: newResult.createdAt || 0
+                    };
+                }
+                
+                const totalTests = existing.testCount + 1;
+                const totalMessages = existing.messagesReceived + newResult.messagesReceived;
+                
+                // Weighted average based on messages received
+                const weightExisting = existing.messagesReceived;
+                const weightNew = newResult.messagesReceived;
+                const totalWeight = weightExisting + weightNew;
+                
+                let mergedAvgJitter, mergedJitterCV, mergedAvgBandwidth, mergedAvgMsgSec;
+                
+                if (totalWeight > 0) {
+                    mergedAvgJitter = (existing.avgJitter * weightExisting + newResult.avgJitter * weightNew) / totalWeight;
+                    mergedJitterCV = (existing.jitterCV * weightExisting + newResult.jitterCV * weightNew) / totalWeight;
+                    mergedAvgBandwidth = (existing.avgBandwidth * weightExisting + newResult.avgBandwidth * weightNew) / totalWeight;
+                    mergedAvgMsgSec = (existing.avgMsgSec * weightExisting + newResult.avgMsgSec * weightNew) / totalWeight;
+                } else {
+                    mergedAvgJitter = 0;
+                    mergedJitterCV = 0;
+                    mergedAvgBandwidth = 0;
+                    mergedAvgMsgSec = 0;
+                }
+                
+                // Merge partition data - keep the latest partition data
+                let mergedPartitionData = newResult.partitionData || existing.partitionData;
+                
+                return {
+                    streamId: existing.streamId,
+                    partitions: existing.partitions,
+                    testedPartitions: newResult.testedPartitions || existing.testedPartitions,
+                    sponsored: existing.sponsored || newResult.sponsored,
+                    createdAt: existing.createdAt || newResult.createdAt || 0,
+                    avgJitter: mergedAvgJitter,
+                    jitterCV: mergedJitterCV,
+                    peakBandwidth: Math.max(existing.peakBandwidth, newResult.peakBandwidth),
+                    avgBandwidth: mergedAvgBandwidth,
+                    messagesReceived: totalMessages,
+                    avgMsgSec: mergedAvgMsgSec,
+                    peakMsgSec: Math.max(existing.peakMsgSec, newResult.peakMsgSec),
+                    testDuration: newResult.testDuration, // Use latest test duration
+                    testCount: totalTests,
+                    isHighTraffic: existing.isHighTraffic || newResult.isHighTraffic,
+                    partitionData: mergedPartitionData // Keep partition data for dropdown
+                };
+            }
+
+            function renderCrawlerResult(result) {
+                // Merge with existing data
+                const existing = appState.crawlerResults.get(result.streamId);
+                const merged = mergeResultData(existing, result);
+                appState.crawlerResults.set(result.streamId, merged);
+                
+                // Re-render the entire sorted table
+                renderCrawlerTable();
+            }
+            
+            // Helper function to format bandwidth (Kbps or Mbps)
+            function formatBandwidth(kbps) {
+                if (kbps >= 10000) {
+                    return (kbps / 1000).toFixed(2) + ' Mbps';
+                }
+                return kbps.toFixed(2) + ' Kbps';
+            }
+            
+            function renderCrawlerTable() {
+                // Get all results and sort them
+                let resultsArray = Array.from(appState.crawlerResults.values());
+                
+                // Apply sorting
+                if (appState.crawlerSortKey) {
+                    resultsArray.sort((a, b) => {
+                        let valA = a[appState.crawlerSortKey];
+                        let valB = b[appState.crawlerSortKey];
+                        
+                        // Handle booleans
+                        if (typeof valA === 'boolean') valA = valA ? 1 : 0;
+                        if (typeof valB === 'boolean') valB = valB ? 1 : 0;
+                        
+                        // Handle strings
+                        if (typeof valA === 'string') {
+                            return appState.crawlerSortDirection === 'asc' 
+                                ? valA.localeCompare(valB)
+                                : valB.localeCompare(valA);
+                        }
+                        
+                        // Handle numbers
+                        return appState.crawlerSortDirection === 'asc' 
+                            ? valA - valB 
+                            : valB - valA;
+                    });
+                } else {
+                    // Default: sort by createdAt (newest first)
+                    resultsArray.sort((a, b) => b.createdAt - a.createdAt);
+                }
+                
+                // Clear and re-render
+                crawlerResultsTable.innerHTML = '';
+                
+                for (const result of resultsArray) {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-stream-id', result.streamId);
+                    row.className = 'partition-row';
+                    
+                    // Show more of the stream ID now that we have more space
+                    const shortId = result.streamId.length > 55 
+                        ? result.streamId.substring(0, 52) + '...' 
+                        : result.streamId;
+                    
+                    const isActive = appState.crawlerActiveTests.has(result.streamId);
+                    const spinnerHtml = isActive ? '<span class="spinner"></span>' : '';
+                    
+                    // Show expand icon if there's partition data OR if stream has multiple partitions
+                    const hasPartitionData = result.partitionData && result.partitionData.length > 0;
+                    const isMultiPartition = result.partitions > 1;
+                    const showExpandIcon = hasPartitionData || isMultiPartition;
+                    const isExpanded = appState.crawlerExpandedRows.has(result.streamId);
+                    const expandIcon = showExpandIcon 
+                        ? `<span class="expand-icon">${isExpanded ? '▼' : '▶'}</span>` 
+                        : '';
+                    
+                    // Show partitions as "tested/total"
+                    const testedP = result.testedPartitions || result.partitions;
+                    const totalP = result.partitions;
+                    const partitionsDisplay = `${testedP}/${totalP}`;
+                    
+                    if (isExpanded) row.classList.add('expanded');
+                    
+                    row.innerHTML = `
+                        <td class="font-mono text-xs" title="${result.streamId}">${expandIcon}${spinnerHtml}${shortId}</td>
+                        <td class="text-center">${partitionsDisplay}</td>
+                        <td>${result.messagesReceived > 0 ? result.avgJitter.toFixed(2) + ' ms' : '--'}</td>
+                        <td>${result.messagesReceived > 0 ? result.jitterCV.toFixed(2) + ' %' : '--'}</td>
+                        <td>${result.messagesReceived > 0 ? formatBandwidth(result.peakBandwidth) : '--'}</td>
+                        <td>${result.messagesReceived > 0 ? formatBandwidth(result.avgBandwidth) : '--'}</td>
+                        <td class="text-center">${result.messagesReceived}</td>
+                        <td>${result.messagesReceived > 0 ? result.avgMsgSec.toFixed(2) : '--'}</td>
+                        <td>${result.messagesReceived > 0 ? result.peakMsgSec.toFixed(2) : '--'}</td>
+                        <td>${result.testDuration ? result.testDuration.toFixed(1) + 's' : '--'}</td>
+                        <td class="text-center">${result.testCount}</td>
+                    `;
+                    
+                    // Color code based on data received
+                    if (result.messagesReceived === 0) {
+                        row.style.opacity = '0.5';
+                    } else if (result.messagesReceived > 100) {
+                        row.style.backgroundColor = 'rgba(63, 145, 66, 0.1)';
+                    }
+                    
+                    // Click handler to expand/collapse partition details
+                    if (showExpandIcon) {
+                        row.style.cursor = 'pointer';
+                        row.addEventListener('click', () => {
+                            if (appState.crawlerExpandedRows.has(result.streamId)) {
+                                appState.crawlerExpandedRows.delete(result.streamId);
+                            } else {
+                                appState.crawlerExpandedRows.add(result.streamId);
+                            }
+                            renderCrawlerTable();
+                        });
+                    }
+                    
+                    crawlerResultsTable.appendChild(row);
+                    
+                    // Add partition details row if expanded and has partition data
+                    if (showExpandIcon && isExpanded && hasPartitionData) {
+                        const detailsRow = document.createElement('tr');
+                        detailsRow.className = 'partition-details-row visible';
+                        detailsRow.innerHTML = `
+                            <td colspan="11">
+                                <div class="partition-details-container">
+                                    <table class="partition-details-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Partition</th>
+                                                <th>Avg Jitter</th>
+                                                <th>Jitter CV</th>
+                                                <th>Peak BW</th>
+                                                <th>Avg BW</th>
+                                                <th>Messages</th>
+                                                <th>Avg msg/s</th>
+                                                <th>Peak msg/s</th>
+                                                <th>Duration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${result.partitionData.map(p => `
+                                                <tr style="${p.messagesReceived === 0 ? 'opacity: 0.5' : ''}">
+                                                    <td><strong>P${p.partition}</strong></td>
+                                                    <td>${p.messagesReceived > 0 ? p.avgJitter.toFixed(2) + ' ms' : '--'}</td>
+                                                    <td>${p.messagesReceived > 0 ? p.jitterCV.toFixed(2) + ' %' : '--'}</td>
+                                                    <td>${p.messagesReceived > 0 ? formatBandwidth(p.peakBandwidth) : '--'}</td>
+                                                    <td>${p.messagesReceived > 0 ? formatBandwidth(p.avgBandwidth) : '--'}</td>
+                                                    <td>${p.messagesReceived}</td>
+                                                    <td>${p.messagesReceived > 0 ? p.avgMsgSec.toFixed(2) : '--'}</td>
+                                                    <td>${p.messagesReceived > 0 ? p.peakMsgSec.toFixed(2) : '--'}</td>
+                                                    <td>${p.testDuration ? p.testDuration.toFixed(1) + 's' : '--'}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        `;
+                        crawlerResultsTable.appendChild(detailsRow);
+                    } else if (showExpandIcon && isExpanded && !hasPartitionData) {
+                        // Show message that partition data is not available yet
+                        const detailsRow = document.createElement('tr');
+                        detailsRow.className = 'partition-details-row visible';
+                        detailsRow.innerHTML = `
+                            <td colspan="11">
+                                <div class="partition-details-container">
+                                    <p style="color: var(--text-secondary); margin: 0;">Partition data not available yet. Wait for next test cycle.</p>
+                                </div>
+                            </td>
+                        `;
+                        crawlerResultsTable.appendChild(detailsRow);
+                    }
+                }
+            }
+            
+            // Crawler table header click handler for sorting
+            crawlerTableHead.addEventListener('click', (e) => {
+                const header = e.target.closest('.crawler-sortable');
+                if (!header) return;
+                
+                const sortKey = header.getAttribute('data-sort-key');
+                
+                // Cycle through: default -> desc -> asc -> default
+                if (appState.crawlerSortKey !== sortKey) {
+                    // New column: start with desc
+                    appState.crawlerSortKey = sortKey;
+                    appState.crawlerSortDirection = 'desc';
+                } else if (appState.crawlerSortDirection === 'desc') {
+                    appState.crawlerSortDirection = 'asc';
+                } else {
+                    // Reset to default
+                    appState.crawlerSortKey = null;
+                    appState.crawlerSortDirection = 'desc';
+                }
+                
+                // Update header styles
+                crawlerTableHead.querySelectorAll('.crawler-sortable').forEach(th => {
+                    th.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                if (appState.crawlerSortKey) {
+                    header.classList.add(appState.crawlerSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+                
+                // Re-render table with new sort
+                renderCrawlerTable();
+            });
+
+            /**
+             * Fetch all streams from The Graph for crawling
+             * Uses cursor-based pagination (id_gt) to bypass the 5000 skip limit
+             */
+            async function fetchAllStreamsForCrawling() {
+                const excludeCoordination = crawlerExcludeCoordination.checked;
+                const prioritizeSponsored = crawlerPrioritizeSponsored.checked;
+                
+                crawlerStatusEl.textContent = 'Fetching streams...';
+                crawlerStatusEl.style.color = 'var(--accent-color)';
+                
+                let allStreams = [];
+                const batchSize = 1000;
+                let hasMore = true;
+                let lastId = ""; // Cursor for pagination
+                
+                while (hasMore) {
+                    const whereConditions = [];
+                    if (excludeCoordination) {
+                        whereConditions.push(`idAsString_not_contains_nocase: "/coordination"`);
+                    }
+                    // Cursor-based pagination: fetch streams with id greater than last fetched
+                    if (lastId) {
+                        whereConditions.push(`id_gt: "${lastId}"`);
+                    }
+                    
+                    const whereClause = whereConditions.length > 0 ? `where: { ${whereConditions.join(', ')} }` : '';
+                    
+                    const query = `
+                        query FetchStreams($first: Int) {
+                          streams(
+                            first: $first,
+                            orderBy: id,
+                            orderDirection: asc,
+                            ${whereClause}
+                          ) {
+                            id
+                            idAsString
+                            createdAt
+                            metadata
+                            sponsorships(first: 1, where: {isRunning: true, spotAPY_gt: "0"}) {
+                              id
+                              spotAPY
+                            }
+                          }
+                        }
+                    `;
+                    
+                    try {
+                        const data = await queryTheGraph(query, { first: batchSize });
+                        if (data.streams.length === 0) {
+                            hasMore = false;
+                        } else {
+                            allStreams = allStreams.concat(data.streams);
+                            // Update cursor to last stream's id
+                            lastId = data.streams[data.streams.length - 1].id;
+                            crawlerStatusEl.textContent = `Fetching streams... (${allStreams.length} found)`;
+                            
+                            // If we got less than batchSize, we've reached the end
+                            if (data.streams.length < batchSize) {
+                                hasMore = false;
+                            }
+                            
+                            // Safety limit
+                            if (allStreams.length >= 50000) {
+                                hasMore = false;
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error fetching streams:', err);
+                        hasMore = false;
+                    }
+                }
+                
+                // Parse metadata for partition count
+                // Use idAsString for ENS names (e.g., tv.streamr.eth/path) or fallback to id
+                allStreams = allStreams.map(stream => {
+                    let partitions = 1;
+                    try {
+                        if (stream.metadata) {
+                            const meta = JSON.parse(stream.metadata);
+                            if (meta.partitions) partitions = meta.partitions;
+                        }
+                    } catch (e) {}
+                    
+                    return {
+                        id: stream.idAsString || stream.id,
+                        partitions: partitions,
+                        sponsored: stream.sponsorships && stream.sponsorships.length > 0,
+                        createdAt: parseInt(stream.createdAt) || 0
+                    };
+                });
+                
+                // Sort: sponsored first (if enabled), then newest, then by partition count
+                allStreams.sort((a, b) => {
+                    // Primary: sponsored first (if option enabled)
+                    if (prioritizeSponsored && a.sponsored !== b.sponsored) {
+                        return b.sponsored - a.sponsored; // true (1) before false (0)
+                    }
+                    // Secondary: creation date (newest first)
+                    if (a.createdAt !== b.createdAt) return b.createdAt - a.createdAt;
+                    // Tertiary: fewer partitions first
+                    return a.partitions - b.partitions;
+                });
+                
+                return allStreams;
+            }
+
+            /**
+             * Test a single partition of a stream
+             * @returns {object} Partition test result with stats
+             */
+            async function testPartition(streamInfo, partitionIndex) {
+                const streamr = getStreamrClient();
+                if (!streamr || !appState.crawlerIsRunning) return null;
+                
+                const partitionKey = `${streamInfo.id}:${partitionIndex}`;
+                
+                const testData = {
+                    streamId: streamInfo.id,
+                    partition: partitionIndex,
+                    partitions: streamInfo.partitions,
+                    sponsored: streamInfo.sponsored,
+                    createdAt: streamInfo.createdAt || 0,
+                    startTime: Date.now(),
+                    firstMessageTime: null,
+                    stabilizedTime: null,
+                    messagesReceived: 0,
+                    bytesReceived: 0,
+                    jitterData: [],
+                    recentJitterWindow: [],
+                    lastPacketDetails: null,
+                    msgTimestamps: [],
+                    bytesHistory: [],
+                    peakMsgSec: 0,
+                    peakBandwidth: 0,
+                    lastMessageTime: Date.now(),
+                    subscription: null,
+                    isHighTraffic: false,
+                    useSmartWarmup: crawlerSmartWarmup.checked
+                };
+                
+                // Track this partition as active
+                appState.crawlerActivePartitions.set(partitionKey, testData);
+                
+                // Also track the stream as active (for UI spinner)
+                if (!appState.crawlerActiveTests.has(streamInfo.id)) {
+                    appState.crawlerActiveTests.set(streamInfo.id, {
+                        streamId: streamInfo.id,
+                        partitions: streamInfo.partitions,
+                        activePartitions: new Set([partitionIndex])
+                    });
+                } else {
+                    appState.crawlerActiveTests.get(streamInfo.id).activePartitions.add(partitionIndex);
+                }
+                
+                updateCrawlerStatus();
+                
+                const handleMessage = (content, metadata) => {
+                    const now = Date.now();
+                    const test = appState.crawlerActivePartitions.get(partitionKey);
+                    if (!test) return;
+                    
+                    // Track first message time for warmup calculation
+                    if (test.firstMessageTime === null) {
+                        test.firstMessageTime = now;
+                    }
+                    
+                    test.messagesReceived++;
+                    test.lastMessageTime = now;
+                    const msgSize = JSON.stringify(content).length;
+                    test.bytesReceived += msgSize;
+                    test.msgTimestamps.push(now);
+                    test.bytesHistory.push({ timestamp: now, size: msgSize });
+                    
+                    // Calculate jitter and store with timestamp
+                    const networkTimestamp = metadata.timestamp;
+                    if (networkTimestamp && test.lastPacketDetails) {
+                        const sendInterval = networkTimestamp - test.lastPacketDetails.sendTime;
+                        const receiveInterval = now - test.lastPacketDetails.receiveTime;
+                        const jitter = Math.abs(receiveInterval - sendInterval);
+                        test.jitterData.push({ timestamp: now, value: jitter });
+                        
+                        // Smart warmup: track recent jitter for stability detection
+                        if (test.useSmartWarmup && test.stabilizedTime === null) {
+                            test.recentJitterWindow.push({ timestamp: now, value: jitter });
+                            const stabilityWindowMs = 5000;
+                            test.recentJitterWindow = test.recentJitterWindow.filter(j => j.timestamp > now - stabilityWindowMs);
+                            
+                            if (test.recentJitterWindow.length >= 5) {
+                                const values = test.recentJitterWindow.map(j => j.value);
+                                const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                                if (mean > 0) {
+                                    const variance = values.map(v => Math.pow(v - mean, 2)).reduce((a, b) => a + b, 0) / values.length;
+                                    const stdDev = Math.sqrt(variance);
+                                    const cv = (stdDev / mean) * 100;
+                                    if (cv < 100) {
+                                        test.stabilizedTime = now;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    test.lastPacketDetails = { sendTime: networkTimestamp, receiveTime: now };
+                    
+                    // Determine warmup cutoff based on mode
+                    const fixedWarmupMs = 5000;
+                    let warmupComplete = false;
+                    const timeSinceFirstMsg = test.firstMessageTime ? (now - test.firstMessageTime) : 0;
+                    
+                    if (test.useSmartWarmup) {
+                        warmupComplete = test.stabilizedTime !== null || timeSinceFirstMsg > 15000;
+                    } else {
+                        warmupComplete = timeSinceFirstMsg > fixedWarmupMs;
+                    }
+                    
+                    if (warmupComplete) {
+                        const recentMsgs = test.msgTimestamps.filter(ts => ts > now - 1000).length;
+                        test.peakMsgSec = Math.max(test.peakMsgSec, recentMsgs);
+                        
+                        const recentBytes = test.bytesHistory.filter(b => b.timestamp > now - 1000)
+                            .reduce((acc, b) => acc + b.size, 0);
+                        const currentBandwidth = (recentBytes * 8) / 1000;
+                        test.peakBandwidth = Math.max(test.peakBandwidth, currentBandwidth);
+                    }
+                    
+                    // Check for high traffic
+                    const recentMsgsForTraffic = test.msgTimestamps.filter(ts => ts > now - 1000).length;
+                    if (recentMsgsForTraffic > appState.crawlerHighTrafficThreshold) {
+                        test.isHighTraffic = true;
+                    }
+                };
+                
+                try {
+                    // Subscribe to this specific partition
+                    testData.subscription = await streamr.subscribe({
+                        streamId: streamInfo.id,
+                        partition: partitionIndex
+                    }, handleMessage);
+                    
+                    // Wait for test duration or timeout
+                    await new Promise((resolve) => {
+                        const checkInterval = setInterval(() => {
+                            const test = appState.crawlerActivePartitions.get(partitionKey);
+                            if (!test || !appState.crawlerIsRunning) {
+                                clearInterval(checkInterval);
+                                resolve();
+                                return;
+                            }
+                            
+                            const currentTestDuration = parseInt(crawlerTestDuration.value) * 1000;
+                            const currentNoDataTimeout = parseInt(crawlerTimeout.value) * 1000;
+                            
+                            const elapsed = Date.now() - test.startTime;
+                            const timeSinceLastMsg = Date.now() - test.lastMessageTime;
+                            
+                            if (elapsed >= currentTestDuration || 
+                                (test.messagesReceived === 0 && timeSinceLastMsg >= currentNoDataTimeout) ||
+                                (test.messagesReceived > 0 && timeSinceLastMsg >= currentNoDataTimeout / 2)) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 500);
+                    });
+                    
+                } catch (err) {
+                    console.error(`Error testing ${streamInfo.id} partition ${partitionIndex}:`, err);
+                }
+                
+                // Cleanup subscription
+                const finalTest = appState.crawlerActivePartitions.get(partitionKey);
+                if (finalTest && finalTest.subscription) {
+                    try { await finalTest.subscription.unsubscribe(); } catch (e) {}
+                }
+                
+                // Calculate partition statistics
+                const result = calculatePartitionStats(finalTest || testData);
+                
+                // Remove from active partitions
+                appState.crawlerActivePartitions.delete(partitionKey);
+                
+                // Update stream tracker - just remove from active, let runCrawler handle aggregation
+                const streamTracker = appState.crawlerActiveTests.get(streamInfo.id);
+                if (streamTracker) {
+                    streamTracker.activePartitions.delete(partitionIndex);
+                    
+                    // If no more active partitions for this stream, remove from active tests
+                    if (streamTracker.activePartitions.size === 0) {
+                        appState.crawlerActiveTests.delete(streamInfo.id);
+                    }
+                }
+                
+                return result; // Return partition result for aggregation in runCrawler
+            }
+
+            function calculatePartitionStats(testData) {
+                const testDuration = (Date.now() - testData.startTime) / 1000;
+                const fixedWarmupMs = 3000;
+                
+                let warmupCutoff;
+                if (testData.useSmartWarmup) {
+                    if (testData.stabilizedTime) {
+                        warmupCutoff = testData.stabilizedTime;
+                    } else if (testData.firstMessageTime) {
+                        warmupCutoff = testData.firstMessageTime + Math.min(10000, fixedWarmupMs);
+                    } else {
+                        warmupCutoff = 0;
+                    }
+                } else {
+                    warmupCutoff = testData.firstMessageTime ? (testData.firstMessageTime + fixedWarmupMs) : 0;
+                }
+                
+                const jitterAfterWarmup = testData.jitterData
+                    .filter(j => j.timestamp > warmupCutoff)
+                    .map(j => j.value);
+                
+                let avgJitter = 0, jitterCV = 0;
+                if (jitterAfterWarmup.length > 1) {
+                    const mean = jitterAfterWarmup.reduce((a, b) => a + b, 0) / jitterAfterWarmup.length;
+                    avgJitter = mean;
+                    const variance = jitterAfterWarmup.map(k => Math.pow(k - mean, 2))
+                        .reduce((a, b) => a + b, 0) / jitterAfterWarmup.length;
+                    const stdDev = Math.sqrt(variance);
+                    jitterCV = mean > 0 ? (stdDev / mean) * 100 : 0;
+                } else if (testData.jitterData.length > 1) {
+                    // Fallback: use all jitter data if not enough after warmup
+                    const allJitter = testData.jitterData.map(j => j.value);
+                    const mean = allJitter.reduce((a, b) => a + b, 0) / allJitter.length;
+                    avgJitter = mean;
+                    const variance = allJitter.map(k => Math.pow(k - mean, 2))
+                        .reduce((a, b) => a + b, 0) / allJitter.length;
+                    const stdDev = Math.sqrt(variance);
+                    jitterCV = mean > 0 ? (stdDev / mean) * 100 : 0;
+                }
+                
+                const msgsAfterWarmup = testData.msgTimestamps.filter(ts => ts > warmupCutoff);
+                const bytesAfterWarmup = testData.bytesHistory
+                    .filter(b => b.timestamp > warmupCutoff)
+                    .reduce((acc, b) => acc + b.size, 0);
+                
+                // Calculate averages - use post-warmup data if available, otherwise use all data
+                let avgMsgSec, avgBandwidth, effectiveDuration;
+                
+                if (msgsAfterWarmup.length > 0) {
+                    // Use post-warmup data
+                    effectiveDuration = (Date.now() - warmupCutoff) / 1000;
+                    avgMsgSec = msgsAfterWarmup.length / Math.max(effectiveDuration, 0.1);
+                    avgBandwidth = ((bytesAfterWarmup * 8) / 1000) / Math.max(effectiveDuration, 0.1);
+                } else if (testData.messagesReceived > 0) {
+                    // Fallback: use all data if no messages after warmup
+                    const totalBytes = testData.bytesHistory.reduce((acc, b) => acc + b.size, 0);
+                    effectiveDuration = testDuration;
+                    avgMsgSec = testData.messagesReceived / Math.max(testDuration, 0.1);
+                    avgBandwidth = ((totalBytes * 8) / 1000) / Math.max(testDuration, 0.1);
+                } else {
+                    effectiveDuration = testDuration;
+                    avgMsgSec = 0;
+                    avgBandwidth = 0;
+                }
+                
+                // Ensure peak is at least equal to average (peak may have missed some intervals)
+                const peakBandwidth = Math.max(testData.peakBandwidth, avgBandwidth);
+                const peakMsgSec = Math.max(testData.peakMsgSec, avgMsgSec);
+                
+                return {
+                    partition: testData.partition,
+                    avgJitter: avgJitter,
+                    jitterCV: jitterCV,
+                    peakBandwidth: peakBandwidth,
+                    avgBandwidth: avgBandwidth,
+                    messagesReceived: testData.messagesReceived,
+                    avgMsgSec: avgMsgSec,
+                    peakMsgSec: peakMsgSec,
+                    testDuration: testDuration,
+                    isHighTraffic: testData.isHighTraffic
+                };
+            }
+
+            /**
+             * Aggregate results from all partitions into a single stream result
+             */
+            function aggregatePartitionResults(streamInfo, partitionResults) {
+                const partitionData = Array.from(partitionResults.entries())
+                    .map(([partition, data]) => ({ ...data, partition }))
+                    .sort((a, b) => a.partition - b.partition);
+                
+                // Sum up the data from all partitions
+                let totalMessages = 0;
+                let totalAvgMsgSec = 0;
+                let totalPeakMsgSec = 0;
+                let totalAvgBandwidth = 0;
+                let totalPeakBandwidth = 0;
+                let jitterSum = 0;
+                let jitterCVSum = 0;
+                let partitionsWithData = 0;
+                let maxTestDuration = 0;
+                let isHighTraffic = false;
+                
+                for (const p of partitionData) {
+                    totalMessages += p.messagesReceived;
+                    totalAvgMsgSec += p.avgMsgSec;
+                    totalPeakMsgSec += p.peakMsgSec;
+                    totalAvgBandwidth += p.avgBandwidth;
+                    totalPeakBandwidth += p.peakBandwidth;
+                    maxTestDuration = Math.max(maxTestDuration, p.testDuration);
+                    if (p.isHighTraffic) isHighTraffic = true;
+                    
+                    if (p.messagesReceived > 0) {
+                        jitterSum += p.avgJitter;
+                        jitterCVSum += p.jitterCV;
+                        partitionsWithData++;
+                    }
+                }
+                
+                const avgJitter = partitionsWithData > 0 ? jitterSum / partitionsWithData : 0;
+                const avgJitterCV = partitionsWithData > 0 ? jitterCVSum / partitionsWithData : 0;
+                
+                return {
+                    streamId: streamInfo.id,
+                    partitions: streamInfo.partitions,
+                    testedPartitions: partitionData.length,
+                    sponsored: streamInfo.sponsored,
+                    createdAt: streamInfo.createdAt || 0,
+                    avgJitter: avgJitter,
+                    jitterCV: avgJitterCV,
+                    peakBandwidth: totalPeakBandwidth,
+                    avgBandwidth: totalAvgBandwidth,
+                    messagesReceived: totalMessages,
+                    avgMsgSec: totalAvgMsgSec,
+                    peakMsgSec: totalPeakMsgSec,
+                    testDuration: maxTestDuration,
+                    isHighTraffic: isHighTraffic,
+                    partitionData: partitionData // Store individual partition data for dropdown
+                };
+            }
+
+            /**
+             * Main crawler loop - manages testing all partitions of all streams
+             * Each partition uses one slot, respecting the concurrent slots limit
+             */
+            async function runCrawler() {
+                // Build queue of partition tests: each item is {streamInfo, partition}
+                let partitionQueue = [];
+                
+                for (const stream of appState.crawlerStreamsQueue) {
+                    for (let p = 0; p < stream.partitions; p++) {
+                        partitionQueue.push({ streamInfo: stream, partition: p });
+                    }
+                }
+                
+                // Clear the streams queue since we're now using partition queue
+                appState.crawlerStreamsQueue = [];
+                
+                // Track which streams have pending results
+                const pendingStreams = new Map(); // streamId -> {streamInfo, completedPartitions: Map}
+                
+                while (appState.crawlerIsRunning && (partitionQueue.length > 0 || appState.crawlerActivePartitions.size > 0)) {
+                    const maxSlots = parseInt(crawlerSlots.value);
+                    const activeCount = appState.crawlerActivePartitions.size;
+                    
+                    // Check if any active partition test has high traffic
+                    let hasHighTraffic = false;
+                    for (const [_, test] of appState.crawlerActivePartitions) {
+                        if (test.isHighTraffic) {
+                            hasHighTraffic = true;
+                            break;
+                        }
+                    }
+                    
+                    // Determine if we can start the next partition test
+                    let canStart = partitionQueue.length > 0 && activeCount < maxSlots && !hasHighTraffic;
+                    
+                    if (!canStart) {
+                        await new Promise(r => setTimeout(r, 200));
+                        updateCrawlerStatus();
+                        continue;
+                    }
+                    
+                    // Start the next partition test
+                    const { streamInfo, partition } = partitionQueue.shift();
+                    
+                    // Initialize pending stream tracker if needed
+                    if (!pendingStreams.has(streamInfo.id)) {
+                        pendingStreams.set(streamInfo.id, {
+                            streamInfo: streamInfo,
+                            completedPartitions: new Map(),
+                            totalPartitions: streamInfo.partitions
+                        });
+                    }
+                    
+                    // Run partition test concurrently
+                    testPartition(streamInfo, partition).then(partitionResult => {
+                        if (partitionResult) {
+                            const pending = pendingStreams.get(streamInfo.id);
+                            if (pending) {
+                                pending.completedPartitions.set(partition, partitionResult);
+                                
+                                // Check if all partitions for this stream are complete
+                                if (pending.completedPartitions.size === pending.totalPartitions) {
+                                    // Aggregate results
+                                    const aggregatedResult = aggregatePartitionResults(
+                                        pending.streamInfo, 
+                                        pending.completedPartitions
+                                    );
+                                    
+                                    pendingStreams.delete(streamInfo.id);
+                                    appState.crawlerTestedCount++;
+                                    
+                                    if (aggregatedResult.messagesReceived > 0) {
+                                        appState.crawlerWithDataCount++;
+                                    } else {
+                                        appState.crawlerNoDataCount++;
+                                    }
+                                    
+                                    renderCrawlerResult(aggregatedResult);
+                                }
+                            }
+                        }
+                        updateCrawlerStatus();
+                    });
+                    
+                    updateCrawlerStatus();
+                    await new Promise(r => setTimeout(r, 50)); // Small delay between starts
+                }
+                
+                // Wait for remaining partition tests to complete
+                while (appState.crawlerActivePartitions.size > 0 && appState.crawlerIsRunning) {
+                    await new Promise(r => setTimeout(r, 500));
+                    updateCrawlerStatus();
+                }
+                
+                // Handle any remaining pending streams (shouldn't happen but just in case)
+                for (const [streamId, pending] of pendingStreams) {
+                    if (pending.completedPartitions.size > 0) {
+                        const aggregatedResult = aggregatePartitionResults(
+                            pending.streamInfo,
+                            pending.completedPartitions
+                        );
+                        appState.crawlerTestedCount++;
+                        if (aggregatedResult.messagesReceived > 0) {
+                            appState.crawlerWithDataCount++;
+                        } else {
+                            appState.crawlerNoDataCount++;
+                        }
+                        renderCrawlerResult(aggregatedResult);
+                    }
+                }
+                pendingStreams.clear();
+                
+                // Cycle complete - increment counter and restart
+                if (appState.crawlerIsRunning) {
+                    appState.crawlerCycleCount++;
+                    appState.crawlerTestedCount = 0;
+                    
+                    // Refill queue from saved streams list
+                    appState.crawlerStreamsQueue = [...appState.crawlerAllStreams];
+                    
+                    crawlerStatusEl.textContent = `Running (Cycle ${appState.crawlerCycleCount + 1})`;
+                    updateCrawlerStatus();
+                    
+                    // Continue with next cycle
+                    runCrawler();
+                } else {
+                    crawlerStatusEl.textContent = 'Stopped';
+                    crawlerStartBtn.disabled = false;
+                    crawlerStopBtn.disabled = true;
+                }
+            }
+
+            async function startCrawler() {
+                if (appState.crawlerIsRunning) return;
+                
+                // Reset state (but keep accumulated results if any)
+                appState.crawlerIsRunning = true;
+                appState.crawlerStreamsQueue = [];
+                appState.crawlerActiveTests.clear();
+                appState.crawlerActivePartitions.clear();
+                // Don't clear results - we accumulate across sessions
+                // appState.crawlerResults = new Map(); // Only clear if user explicitly resets
+                appState.crawlerTestedCount = 0;
+                appState.crawlerCycleCount = 0;
+                appState.crawlerWithDataCount = 0;
+                appState.crawlerNoDataCount = 0;
+                
+                crawlerStartBtn.disabled = true;
+                crawlerStopBtn.disabled = false;
+                
+                // Fetch all streams
+                const streams = await fetchAllStreamsForCrawling();
+                appState.crawlerAllStreams = streams; // Save for cycling
+                appState.crawlerStreamsQueue = [...streams];
+                appState.crawlerTotalStreams = streams.length;
+                
+                crawlerStatusEl.textContent = 'Running (Cycle 1)';
+                crawlerStatusEl.style.color = 'var(--success-color)';
+                updateCrawlerStatus();
+                
+                // Start the crawler loop
+                runCrawler();
+            }
+
+            async function stopCrawler() {
+                appState.crawlerIsRunning = false;
+                crawlerStatusEl.textContent = 'Stopping...';
+                crawlerStatusEl.style.color = 'var(--danger-color)';
+                
+                // Unsubscribe from all active partition tests
+                for (const [partitionKey, test] of appState.crawlerActivePartitions) {
+                    if (test.subscription) {
+                        try { await test.subscription.unsubscribe(); } catch (e) {}
+                    }
+                }
+                appState.crawlerActivePartitions.clear();
+                appState.crawlerActiveTests.clear();
+                
+                crawlerStatusEl.textContent = 'Stopped';
+                crawlerStartBtn.disabled = false;
+                crawlerStopBtn.disabled = true;
+                updateCrawlerStatus();
+            }
+
+            function exportCrawlerResults() {
+                if (appState.crawlerResults.size === 0) {
+                    alert('No results to export.');
+                    return;
+                }
+                
+                const headers = ['Stream ID', 'Total Partitions', 'Tested Partitions', 'Avg Jitter (ms)', 'Jitter CV (%)', 
+                    'Peak Bandwidth (Kbps)', 'Avg Bandwidth (Kbps)', 'Messages Received', 
+                    'Avg msg/sec', 'Peak msg/sec', 'Test Time (s)', 'Test Count'];
+                
+                const resultsArray = Array.from(appState.crawlerResults.values());
+                const rows = resultsArray.map(r => {
+                    const testedPartitions = r.testedPartitions || r.partitions;
+                    
+                    return [
+                        r.streamId,
+                        r.partitions,
+                        testedPartitions,
+                        r.avgJitter.toFixed(2),
+                        r.jitterCV.toFixed(2),
+                        r.peakBandwidth.toFixed(2),
+                        r.avgBandwidth.toFixed(2),
+                        r.messagesReceived,
+                        r.avgMsgSec.toFixed(2),
+                        r.peakMsgSec.toFixed(2),
+                        r.testDuration ? r.testDuration.toFixed(1) : '0',
+                        r.testCount
+                    ];
+                });
+                
+                const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `stream-crawler-results-${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+            
+            function resetCrawlerData() {
+                if (appState.crawlerIsRunning) {
+                    alert('Please stop the crawler before resetting data.');
+                    return;
+                }
+                
+                if (!confirm('Are you sure you want to clear all accumulated data?')) {
+                    return;
+                }
+                
+                appState.crawlerResults = new Map();
+                appState.crawlerExpandedRows = new Set();
+                appState.crawlerCycleCount = 0;
+                appState.crawlerTestedCount = 0;
+                appState.crawlerWithDataCount = 0;
+                appState.crawlerNoDataCount = 0;
+                crawlerResultsTable.innerHTML = '';
+                updateCrawlerStatus();
+            }
+
+            const crawlerResetBtn = document.getElementById('crawlerResetBtn');
+            crawlerStartBtn.onclick = startCrawler;
+            crawlerStopBtn.onclick = stopCrawler;
+            crawlerResetBtn.onclick = resetCrawlerData;
+            crawlerExportBtn.onclick = exportCrawlerResults;
         
         }); // End of DOMContentLoaded wrapper
 
